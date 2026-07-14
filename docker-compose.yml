@@ -1,6 +1,7 @@
 services:
   mysql:
     image: mysql:8.0
+    container_name: cake_ordering_mysql
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
@@ -8,7 +9,7 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
 
