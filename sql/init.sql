@@ -88,34 +88,30 @@ CREATE TABLE products (
 -- orders（訂單主檔）
 -- ============================================================
 CREATE TABLE orders (
-    id               BIGINT         NOT NULL AUTO_INCREMENT,
-    order_no         VARCHAR(30)    NOT NULL,
-    customer_name    VARCHAR(50)    NOT NULL,
-    phone            VARCHAR(20)    NOT NULL,
-    email            VARCHAR(100)   NOT NULL,
-    shipping_method  VARCHAR(20)    NOT NULL,
-    address          VARCHAR(255)   NULL,
-    shipping_fee     DECIMAL(10,2)  NOT NULL,
-    pickup_date      DATE           NOT NULL,
-    remark           TEXT           NULL,
-    total_amount     DECIMAL(10,2)  NOT NULL,
-    status           VARCHAR(20)    NOT NULL DEFAULT 'PENDING',
-    created_at       DATETIME       NOT NULL,
-    updated_at       DATETIME       NOT NULL,
-
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    order_no VARCHAR(30) NOT NULL,
+    customer_name VARCHAR(50) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    shipping_method VARCHAR(20) NOT NULL,
+    payment_method VARCHAR(20) NOT NULL,
+    address VARCHAR(255) NULL,
+    shipping_fee DECIMAL(10,2) NOT NULL,
+    pickup_date DATE NOT NULL,
+    remark TEXT NULL,
+    total_amount DECIMAL(10,2) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    created_at DATETIME NOT NULL,
+    updated_at DATETIME NOT NULL,
     PRIMARY KEY (id),
-
     -- uk_orders_order_no：訂單編號唯一性約束（撞號時的最後防線）；
     -- 訪客訂單查詢 WHERE order_no = ? AND phone = ? 先走此索引命中單筆再比對電話。
     UNIQUE KEY uk_orders_order_no (order_no),
-
     -- idx_orders_status_created_at：後台訂單列表 WHERE status = ? 篩選
     -- ＋ 依 created_at 排序／分頁的典型組合；不帶 status 篩選時排序亦可利用
     -- created_at 部分（複合索引最左前綴特性）。
     KEY idx_orders_status_created_at (status, created_at)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_general_ci;
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_general_ci;
 
 -- ============================================================
 -- order_items（訂單品項）
