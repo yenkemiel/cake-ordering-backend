@@ -5,6 +5,9 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
+/**
+ * 統一 API 回應 DTO
+ */
 @Getter
 public class ApiResponse<T> {
     private final boolean success;

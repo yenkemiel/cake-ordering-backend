@@ -2,7 +2,7 @@ package com.kemiel.cakeordering.common.exception;
 
 
 /**
- * 系統錯誤代碼。
+ * 系統錯誤代碼
  */
 public enum ErrorCode {
 
