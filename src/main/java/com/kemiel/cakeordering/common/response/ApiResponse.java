@@ -1,5 +1,6 @@
 package com.kemiel.cakeordering.common.response;
 
+import com.kemiel.cakeordering.common.exception.ErrorCode;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -21,10 +22,18 @@ public class ApiResponse<T> {
     }
 
     public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(true, "SUCCESS", "操作成功", data);
+        return new ApiResponse<>(true, ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMessage(), data);
     }
 
     public static ApiResponse<Void> success() {
-        return new ApiResponse<>(true, "SUCCESS", "操作成功", null);
+        return new ApiResponse<>(true, ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMessage(), null);
+    }
+
+    public static <T> ApiResponse<T> error(ErrorCode errorCode) {
+        return new ApiResponse<>(false, errorCode.getCode(), errorCode.getMessage(), null);
+    }
+
+    public static <T> ApiResponse<T> error(ErrorCode errorCode, String message) {
+        return new ApiResponse<>(false, errorCode.getCode(), message, null);
     }
 }
