@@ -6,7 +6,9 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 /**
- * 統一 API 回應 DTO
+ * 統一 API 回應格式
+ *
+ * @param <T> 回應資料的型別
  */
 @Getter
 public class ApiResponse<T> {
