@@ -29,20 +29,16 @@ CREATE TABLE categories (
   COLLATE = utf8mb4_general_ci;
 
 -- ============================================================
--- products（商品，含蛋糕與加購配件）
+-- products（商品基本資料，含蛋糕與加購配件）
 -- ============================================================
 CREATE TABLE products (
     id           BIGINT         NOT NULL AUTO_INCREMENT,
     name         VARCHAR(100)   NOT NULL,
-    size         VARCHAR(20)    NULL,
     category_id  BIGINT         NOT NULL,
-    price        DECIMAL(10,2)  NOT NULL,
-    stock        INT            NOT NULL DEFAULT 0,
     description  TEXT           NULL,
     image_url    VARCHAR(255)   NULL,
     status       VARCHAR(20)    NOT NULL DEFAULT 'ACTIVE',
     is_deleted   TINYINT(1)     NOT NULL DEFAULT 0,
-    version      INT            NOT NULL DEFAULT 0,
     created_at   DATETIME       NOT NULL,
     updated_at   DATETIME       NOT NULL,
 
@@ -53,10 +49,7 @@ CREATE TABLE products (
     -- 列表依分類篩選。同時作為下方 FK 約束所需的索引。
     KEY idx_products_category_id (category_id),
 
-    -- idx_products_list：前後台商品列表最常見的 WHERE 組合 ——
-    -- 前台 WHERE is_deleted = 0 AND status = 'ACTIVE' [AND category_id = ?]、
-    -- 後台 WHERE is_deleted = 0 [AND status = ?] [AND category_id = ?]，
-    -- 複合索引一次涵蓋。
+    -- idx_products_list：前後台商品列表最常見的 WHERE 組合。
     KEY idx_products_list (is_deleted, status, category_id),
 
     -- products.category_id -> categories.id，ON DELETE RESTRICT：
@@ -64,6 +57,42 @@ CREATE TABLE products (
     CONSTRAINT fk_products_category
         FOREIGN KEY (category_id) REFERENCES categories (id)
         ON DELETE RESTRICT
+        ON UPDATE CASCADE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci;
+
+-- ============================================================
+-- product_variants（商品變體，即各尺寸的價格與庫存；防超賣核心資料表）
+-- ============================================================
+CREATE TABLE product_variants (
+    id           BIGINT         NOT NULL AUTO_INCREMENT,
+    product_id   BIGINT         NOT NULL,
+    size         VARCHAR(20)    NULL,
+    price        DECIMAL(10,2)  NOT NULL,
+    stock        INT            NOT NULL DEFAULT 0,
+    version      INT            NOT NULL DEFAULT 0,
+    is_deleted   TINYINT(1)     NOT NULL DEFAULT 0,
+    created_at   DATETIME       NOT NULL,
+    updated_at   DATETIME       NOT NULL,
+
+    PRIMARY KEY (id),
+
+    -- idx_variants_product_id：依商品查詢底下所有變體（列表頁展開、詳細頁載入
+    -- 尺寸選單）；商品整組軟刪除時的 UPDATE ... WHERE product_id = ?。
+    -- 同時作為下方 FK 約束所需的索引。
+    KEY idx_variants_product_id (product_id),
+
+    -- idx_variants_product_deleted：過濾出某商品「未刪除」的變體
+    -- （前台顯示可選尺寸）最常見組合。
+    KEY idx_variants_product_deleted (product_id, is_deleted),
+
+    -- product_variants.product_id -> products.id，一般外鍵，刻意不寫 ON DELETE
+    -- 子句（ERD 4.2 節：商品／變體皆一律軟刪除，不會觸發 DELETE；商品整組軟刪除
+    -- 時由應用層 UPDATE product_variants SET is_deleted = 1 WHERE product_id = ?
+    -- 連動，非資料庫層 CASCADE）。
+    CONSTRAINT fk_variants_product
+        FOREIGN KEY (product_id) REFERENCES products (id)
         ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
@@ -104,8 +133,9 @@ CREATE TABLE orders (
 CREATE TABLE order_items (
     id            BIGINT         NOT NULL AUTO_INCREMENT,
     order_id      BIGINT         NOT NULL,
-    product_id    BIGINT         NOT NULL,
+    variant_id    BIGINT         NOT NULL,
     product_name  VARCHAR(100)   NOT NULL,
+    variant_size  VARCHAR(20)    NULL,
     unit_price    DECIMAL(10,2)  NOT NULL,
     quantity      INT            NOT NULL,
     subtotal      DECIMAL(10,2)  NOT NULL,
@@ -116,9 +146,9 @@ CREATE TABLE order_items (
     -- WHERE order_id = ? 撈出所有品項（最高頻 JOIN）。同時作為下方 FK 約束所需的索引。
     KEY idx_order_items_order_id (order_id),
 
-    -- idx_order_items_product_id：外鍵完整性檢查用；MVP 無「依商品反查訂單」
+    -- idx_order_items_variant_id：外鍵完整性檢查用；MVP 無「依變體反查訂單」
     -- 的功能，保留即可。同時作為下方 FK 約束所需的索引。
-    KEY idx_order_items_product_id (product_id),
+    KEY idx_order_items_variant_id (variant_id),
 
     -- order_items.order_id -> orders.id，ON DELETE CASCADE：
     -- 刪除訂單主檔時一併刪除明細（MVP 不提供刪除訂單 API，僅供資料完整性保障）。
@@ -127,12 +157,11 @@ CREATE TABLE order_items (
         ON DELETE CASCADE
         ON UPDATE CASCADE,
 
-    -- order_items.product_id -> products.id，一般外鍵，刻意不寫 ON DELETE 子句
-    -- （ERD 4.2 節明確指出不設 ON DELETE RESTRICT，因為商品一律軟刪除、不會觸發
-    -- DELETE，此外鍵僅保障不會插入指向不存在商品的資料；省略子句時 InnoDB 預設
-    -- 行為即為 RESTRICT，語意上與明寫等價，但依文件字面決策不顯式寫出）。
-    CONSTRAINT fk_order_items_product
-        FOREIGN KEY (product_id) REFERENCES products (id)
+    -- order_items.variant_id -> product_variants.id，一般外鍵，刻意不寫 ON DELETE
+    -- 子句（ERD 4.3 節：變體一律軟刪除，不會觸發 DELETE，此外鍵僅保障不會插入
+    -- 指向不存在變體的資料）。
+    CONSTRAINT fk_order_items_variant
+        FOREIGN KEY (variant_id) REFERENCES product_variants (id)
         ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4
