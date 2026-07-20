@@ -7,6 +7,10 @@
 -- charset：utf8mb4；collation：utf8mb4_general_ci（不分大小寫，非 _bin/_cs，
 --          讓 categories.name 的 UNIQUE 約束天生不分大小寫）
 -- storage engine：InnoDB
+--
+-- 本版異動（上下架搬到變體層級，推翻先前「作用於商品層級」的決策）：
+--   products 拿掉 status 欄位；product_variants 新增 status 欄位，
+--   每個尺寸各自獨立上下架，不再綁定同商品其他尺寸。
 -- ============================================================
 
 -- ============================================================
@@ -30,6 +34,8 @@ CREATE TABLE categories (
 
 -- ============================================================
 -- products（商品基本資料，含蛋糕與加購配件）
+-- 不含 status：上下架改為變體層級（見 product_variants），
+-- 商品是否還「有東西可賣」由查詢時判斷底下是否存在可購買的變體。
 -- ============================================================
 CREATE TABLE products (
     id           BIGINT         NOT NULL AUTO_INCREMENT,
@@ -37,7 +43,6 @@ CREATE TABLE products (
     category_id  BIGINT         NOT NULL,
     description  TEXT           NULL,
     image_url    VARCHAR(255)   NULL,
-    status       VARCHAR(20)    NOT NULL DEFAULT 'ACTIVE',
     is_deleted   TINYINT(1)     NOT NULL DEFAULT 0,
     created_at   DATETIME       NOT NULL,
     updated_at   DATETIME       NOT NULL,
@@ -50,7 +55,8 @@ CREATE TABLE products (
     KEY idx_products_category_id (category_id),
 
     -- idx_products_list：前後台商品列表最常見的 WHERE 組合。
-    KEY idx_products_list (is_deleted, status, category_id),
+    -- 不含 status（已移至 product_variants，見該表 idx_variants_status_deleted）。
+    KEY idx_products_list (is_deleted, category_id),
 
     -- products.category_id -> categories.id，ON DELETE RESTRICT：
     -- FR-CAT-004「分類刪除防呆」的資料庫層兜底機制。
@@ -63,7 +69,10 @@ CREATE TABLE products (
   COLLATE = utf8mb4_general_ci;
 
 -- ============================================================
--- product_variants（商品變體，即各尺寸的價格與庫存；防超賣核心資料表）
+-- product_variants（商品變體，即各尺寸的價格、庫存與上下架狀態；防超賣核心資料表）
+-- status 作用於變體層級：每個尺寸各自獨立上下架，不再綁定同商品其他尺寸；
+-- 缺貨（stock = 0）跟主動下架（status = INACTIVE）是兩件不同的事，
+-- 缺貨不會自動改變 status。
 -- ============================================================
 CREATE TABLE product_variants (
     id           BIGINT         NOT NULL AUTO_INCREMENT,
@@ -71,6 +80,7 @@ CREATE TABLE product_variants (
     size         VARCHAR(20)    NULL,
     price        DECIMAL(10,2)  NOT NULL,
     stock        INT            NOT NULL DEFAULT 0,
+    status       VARCHAR(20)    NOT NULL DEFAULT 'ACTIVE',
     version      INT            NOT NULL DEFAULT 0,
     is_deleted   TINYINT(1)     NOT NULL DEFAULT 0,
     created_at   DATETIME       NOT NULL,
@@ -84,8 +94,13 @@ CREATE TABLE product_variants (
     KEY idx_variants_product_id (product_id),
 
     -- idx_variants_product_deleted：過濾出某商品「未刪除」的變體
-    -- （前台顯示可選尺寸）最常見組合。
+    -- （後台顯示可選尺寸，含已下架）最常見組合。
     KEY idx_variants_product_deleted (product_id, is_deleted),
+
+    -- idx_variants_status_deleted：前台商品列表／詳細查詢「可購買變體」
+    -- 最常見的 WHERE 組合（is_deleted = 0 AND status = 'ACTIVE'），
+    -- 本次隨上下架欄位搬遷新增。
+    KEY idx_variants_status_deleted (is_deleted, status),
 
     -- product_variants.product_id -> products.id，一般外鍵，刻意不寫 ON DELETE
     -- 子句（ERD 4.2 節：商品／變體皆一律軟刪除，不會觸發 DELETE；商品整組軟刪除
