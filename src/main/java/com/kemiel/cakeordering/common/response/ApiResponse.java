@@ -1,7 +1,6 @@
 package com.kemiel.cakeordering.common.response;
 
 import com.kemiel.cakeordering.common.exception.ErrorCode;
-import lombok.Getter;
 
 import java.time.LocalDateTime;
 
@@ -10,7 +9,6 @@ import java.time.LocalDateTime;
  *
  * @param <T> 回應資料的型別
  */
-@Getter
 public class ApiResponse<T> {
     private final boolean success;
     private final String code;
@@ -40,5 +38,25 @@ public class ApiResponse<T> {
 
     public static <T> ApiResponse<T> error(ErrorCode errorCode, String message) {
         return new ApiResponse<>(false, errorCode.getCode(), message, null);
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
     }
 }

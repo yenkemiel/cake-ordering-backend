@@ -1,14 +1,22 @@
 package com.kemiel.cakeordering.common.health;
 
-import lombok.Builder;
-import lombok.Getter;
-
 /**
  * 健康檢查回應 DTO
  */
-@Getter
-@Builder
 public class HealthResponse {
     private final String status;
     private final long categoriesCount;
+
+    public HealthResponse(String status, long categoriesCount) {
+        this.status = status;
+        this.categoriesCount = categoriesCount;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public long getCategoriesCount() {
+        return categoriesCount;
+    }
 }

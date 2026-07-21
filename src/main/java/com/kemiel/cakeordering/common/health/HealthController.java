@@ -22,10 +22,7 @@ public class HealthController {
     @GetMapping
     public ApiResponse<HealthResponse> check() {
         Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM categories", Long.class);
-        HealthResponse healthResponse = HealthResponse.builder()
-                .status("OK")
-                .categoriesCount(count)
-                .build();
+        HealthResponse healthResponse = new HealthResponse("ok",count);
         return ApiResponse.success(healthResponse);
     }
 
