@@ -24,6 +24,9 @@ public class Category {
     @Column(name="created_at", nullable = false,updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
     protected Category() {
     }
 
@@ -31,6 +34,7 @@ public class Category {
         this.name = name;
         this.sortOrder = sortOrder;
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public Long getId() {
@@ -55,5 +59,13 @@ public class Category {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

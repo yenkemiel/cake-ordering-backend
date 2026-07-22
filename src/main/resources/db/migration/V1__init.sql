@@ -21,6 +21,7 @@ CREATE TABLE categories (
     name        VARCHAR(50)  NOT NULL,
     sort_order  INT          NOT NULL DEFAULT 0,
     created_at  DATETIME     NOT NULL,
+    updated_at  DATETIME     NOT NULL,
 
     PRIMARY KEY (id),
 
@@ -205,11 +206,11 @@ CREATE TABLE admins (
 -- ============================================================
 -- 種子資料：categories 四筆（後端需求書 4.2／9.3 節、ERD 第 6 章）
 -- ============================================================
-INSERT INTO categories (name, sort_order, created_at) VALUES
-    ('水果系列蛋糕', 1, NOW()),
-    ('千層系列蛋糕', 2, NOW()),
-    ('起司系列蛋糕', 3, NOW()),
-    ('配件',        4, NOW());
+ INSERT INTO categories (name, sort_order, created_at, updated_at) VALUES
+    ('水果系列蛋糕', 1, NOW(), NOW()),
+    ('千層系列蛋糕', 2, NOW(), NOW()),
+    ('起司系列蛋糕', 3, NOW(), NOW()),
+    ('配件',        4, NOW(), NOW());
 
 -- ============================================================
 -- admins：刻意不寫入任何資料，保持空表。
