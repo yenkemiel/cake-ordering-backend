@@ -35,7 +35,8 @@ public class CategoryAdminController {
     @Operation(summary = "[FR-CAT-002] 新增分類")
     @PostMapping
     public ResponseEntity<ApiResponse<CategoryResponse>> create(@Valid @RequestBody CreateCategoryRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(categoryService.createCategory(request)));
+        CategoryResponse response = categoryService.createCategory(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
     @Operation(summary = "[FR-CAT-003] 編輯分類")

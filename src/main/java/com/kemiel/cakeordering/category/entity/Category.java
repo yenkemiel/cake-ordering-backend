@@ -1,6 +1,11 @@
 package com.kemiel.cakeordering.category.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.time.LocalDateTime;
 
@@ -18,10 +23,10 @@ public class Category {
     @Column(name = "name", nullable = false, length = 50)
     private String name;
 
-    @Column(name="sort_order", nullable = false)
+    @Column(name = "sort_order", nullable = false)
     private Integer sortOrder;
 
-    @Column(name="created_at", nullable = false,updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at", nullable = false)
