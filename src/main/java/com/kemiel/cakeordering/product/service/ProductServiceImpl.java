@@ -49,23 +49,27 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepository;
 
     /**
-     * 後台商品列表查詢，可依 categoryId 篩選、依 name 排序，今日暫不支援 status 篩選（記入技術債）
+     * 後台商品列表查詢，可依 categoryId／status 篩選、依 name 排序
      */
     @Override
-    public PageResult<ProductSummaryResponse> listProductsForAdmin(List<Long> categoryIds, String sort,
-                                                                   Integer page, Integer size) {
+    public PageResult<ProductSummaryResponse> listProductsForAdmin(List<Long> categoryIds, String status,
+                                                                   String sort, Integer page, Integer size) {
         boolean hasCategoryFilter = categoryIds != null && !categoryIds.isEmpty();
         if (hasCategoryFilter) {
             validateCategoryIds(categoryIds);
         }
+        if (status != null && !VariantStatus.ACTIVE.name().equals(status)
+                && !VariantStatus.INACTIVE.name().equals(status)) {
+            throw new BusinessException(ErrorCode.VALIDATION_ERROR);
+        }
         Pageable pageable = buildPageable(page, size, sort);
         Page<Product> productPage = hasCategoryFilter
-                ? productRepository.findByIsDeletedFalseAndCategoryIdIn(categoryIds, pageable)
-                : productRepository.findByIsDeletedFalse(pageable);
+                ? productRepository.findForAdminByCategoryIds(categoryIds, status, pageable)
+                : productRepository.findForAdmin(status, pageable);
 
         List<Product> products = productPage.getContent();
         Map<Long, String> categoryNames = loadCategoryNames(products);
-        Map<Long, List<ProductVariant>> variantsByProduct = loadVariantsByProduct(products);
+        Map<Long, List<ProductVariant>> variantsByProduct = loadVariantsByProduct(products, status);
 
         List<ProductSummaryResponse> content = new ArrayList<>();
         for (Product product : products) {
@@ -292,7 +296,7 @@ public class ProductServiceImpl implements ProductService {
     /**
      * 批次查出商品清單底下未刪除的變體，依 productId 分組，避免逐筆查詢造成 N+1
      */
-    private Map<Long, List<ProductVariant>> loadVariantsByProduct(List<Product> products) {
+    private Map<Long, List<ProductVariant>> loadVariantsByProduct(List<Product> products, String status) {
         List<Long> productIds = new ArrayList<>();
         for (Product product : products) {
             productIds.add(product.getId());
@@ -301,7 +305,8 @@ public class ProductServiceImpl implements ProductService {
         if (productIds.isEmpty()) {
             return result;
         }
-        for (ProductVariant variant : productVariantRepository.findByProductIdInAndIsDeletedFalse(productIds)) {
+        for (ProductVariant variant :
+                productVariantRepository.findByProductIdInAndIsDeletedFalse(productIds, status)) {
             List<ProductVariant> list = result.get(variant.getProductId());
             if (list == null) {
                 list = new ArrayList<>();
