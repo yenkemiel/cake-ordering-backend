@@ -1,6 +1,5 @@
 package com.kemiel.cakeordering.common.exception;
 
-
 /**
  * 系統錯誤代碼
  */
@@ -17,17 +16,19 @@ public enum ErrorCode {
     INVALID_CREDENTIALS("INVALID_CREDENTIALS", "帳號或密碼錯誤，請重新輸入"),
 
     // 商品
-    PRODUCT_NOT_FOUND("PRODUCT_NOT_FOUND", "找不到此商品，可能已下架或不存在"),
+    PRODUCT_NOT_FOUND("PRODUCT_NOT_FOUND", "找不到此商品，可能不存在或已被移除"),
     CATEGORY_INVALID("CATEGORY_INVALID", "指定的商品分類不存在，請重新選擇"),
+
+    // 變體（各尺寸）
+    VARIANT_NOT_FOUND("VARIANT_NOT_FOUND", "找不到此尺寸選項，可能已被移除"),
+    VARIANT_DELETE_NOT_ALLOWED("VARIANT_DELETE_NOT_ALLOWED", "商品至少需保留一個尺寸選項，如需整個商品下架請使用刪除商品功能"),
+    INSUFFICIENT_STOCK("INSUFFICIENT_STOCK", "商品庫存不足，無法完成訂購"),
+    STOCK_VERSION_CONFLICT("STOCK_VERSION_CONFLICT", "商品庫存狀態已被其他訂單異動，請重新整理後再試一次"),
 
     // 訂單
     ORDER_NOT_FOUND("ORDER_NOT_FOUND", "查無此訂單，請確認訂單編號與電話是否正確"),
     INVALID_ORDER_STATUS_TRANSITION("INVALID_ORDER_STATUS_TRANSITION", "訂單目前狀態不允許此操作"),
     ORDER_CANCEL_NOT_ALLOWED("ORDER_CANCEL_NOT_ALLOWED", "此訂單已出貨或已完成，無法取消"),
-
-    // 庫存與併發
-    INSUFFICIENT_STOCK("INSUFFICIENT_STOCK", "商品庫存不足，無法完成訂購"),
-    STOCK_VERSION_CONFLICT("STOCK_VERSION_CONFLICT", "商品庫存狀態已被其他訂單異動，請重新整理後再試一次"),
 
     // Email 通知（僅供內部記錄，不對外回傳給前端）
     EMAIL_SEND_FAILED("EMAIL_SEND_FAILED", "訂單通知信寄送失敗"),
