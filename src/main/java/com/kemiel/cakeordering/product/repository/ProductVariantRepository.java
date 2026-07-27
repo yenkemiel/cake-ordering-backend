@@ -17,8 +17,10 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     @Query("SELECT v FROM ProductVariant v WHERE v.productId = :productId AND v.isDeleted = false")
     List<ProductVariant> findByProductIdAndIsDeletedFalse(@Param("productId") Long productId);
 
-    @Query("SELECT v FROM ProductVariant v WHERE v.productId IN :productIds AND v.isDeleted = false")
-    List<ProductVariant> findByProductIdInAndIsDeletedFalse(@Param("productIds") List<Long> productIds);
+    @Query("SELECT v FROM ProductVariant v WHERE v.productId IN :productIds AND v.isDeleted = false "
+            + "AND (:status IS NULL OR v.status = :status)")
+    List<ProductVariant> findByProductIdInAndIsDeletedFalse(@Param("productIds") List<Long> productIds,
+                                                            @Param("status") String status);
 
     @Query("SELECT v FROM ProductVariant v WHERE v.productId = :productId "
             + "AND v.status = 'ACTIVE' AND v.isDeleted = false")
@@ -27,5 +29,10 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
     @Query("SELECT v FROM ProductVariant v WHERE v.productId IN :productIds "
             + "AND v.status = 'ACTIVE' AND v.isDeleted = false")
     List<ProductVariant> findByProductIdInAndActiveAndIsDeletedFalse(@Param("productIds") List<Long> productIds);
+
+    @Query("SELECT v FROM ProductVariant v WHERE v.id = :id AND v.productId = :productId AND v.isDeleted = false")
+    ProductVariant findByIdAndProductIdAndIsDeletedFalse(@Param("id") Long id, @Param("productId") Long productId);
+
+    long countByProductIdAndIsDeletedFalse(Long productId);
 }
 
