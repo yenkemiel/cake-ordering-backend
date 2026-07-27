@@ -1,12 +1,17 @@
 package com.kemiel.cakeordering.product.service;
 
 import com.kemiel.cakeordering.common.response.PageResult;
+import com.kemiel.cakeordering.product.dto.AdjustVariantStockRequest;
 import com.kemiel.cakeordering.product.dto.CreateProductRequest;
+import com.kemiel.cakeordering.product.dto.CreateVariantRequest;
 import com.kemiel.cakeordering.product.dto.ProductCustomerDetailResponse;
 import com.kemiel.cakeordering.product.dto.ProductCustomerSummaryResponse;
 import com.kemiel.cakeordering.product.dto.ProductResponse;
 import com.kemiel.cakeordering.product.dto.ProductSummaryResponse;
+import com.kemiel.cakeordering.product.dto.ProductVariantResponse;
 import com.kemiel.cakeordering.product.dto.UpdateProductRequest;
+import com.kemiel.cakeordering.product.dto.UpdateVariantRequest;
+import com.kemiel.cakeordering.product.dto.UpdateVariantStatusRequest;
 
 import java.util.List;
 
@@ -27,4 +32,14 @@ public interface ProductService {
     ProductResponse updateProduct(Long id, UpdateProductRequest request);
 
     void deleteProduct(Long id);
+
+    ProductVariantResponse createVariant(Long productId, CreateVariantRequest request);
+
+    ProductVariantResponse updateVariant(Long productId, Long variantId, UpdateVariantRequest request);
+
+    void deleteVariant(Long productId, Long variantId);
+
+    ProductVariantResponse updateVariantStatus(Long productId, Long variantId, UpdateVariantStatusRequest request);
+
+    ProductVariantResponse adjustVariantStock(Long productId, Long variantId, AdjustVariantStockRequest request);
 }

@@ -5,15 +5,20 @@ import com.kemiel.cakeordering.category.repository.CategoryRepository;
 import com.kemiel.cakeordering.common.exception.BusinessException;
 import com.kemiel.cakeordering.common.exception.ErrorCode;
 import com.kemiel.cakeordering.common.response.PageResult;
+import com.kemiel.cakeordering.product.dto.AdjustVariantStockRequest;
 import com.kemiel.cakeordering.product.dto.CreateProductRequest;
+import com.kemiel.cakeordering.product.dto.CreateVariantRequest;
 import com.kemiel.cakeordering.product.dto.ProductCustomerDetailResponse;
 import com.kemiel.cakeordering.product.dto.ProductCustomerSummaryResponse;
 import com.kemiel.cakeordering.product.dto.ProductResponse;
 import com.kemiel.cakeordering.product.dto.ProductSummaryResponse;
 import com.kemiel.cakeordering.product.dto.ProductVariantCustomerResponse;
 import com.kemiel.cakeordering.product.dto.ProductVariantRequest;
+import com.kemiel.cakeordering.product.dto.ProductVariantResponse;
 import com.kemiel.cakeordering.product.dto.ProductVariantSummaryResponse;
 import com.kemiel.cakeordering.product.dto.UpdateProductRequest;
+import com.kemiel.cakeordering.product.dto.UpdateVariantRequest;
+import com.kemiel.cakeordering.product.dto.UpdateVariantStatusRequest;
 import com.kemiel.cakeordering.product.entity.Product;
 import com.kemiel.cakeordering.product.entity.ProductVariant;
 import com.kemiel.cakeordering.product.entity.VariantStatus;
@@ -372,4 +377,129 @@ public class ProductServiceImpl implements ProductService {
         return new ProductCustomerDetailResponse(product.getId(), product.getName(), product.getCategoryId(),
                 categoryName, product.getDescription(), product.getImageUrl(), variantResponses);
     }
+
+    /**
+     * 新增變體，商品不存在或已刪除回 PRODUCT_NOT_FOUND，status 未帶值預設 ACTIVE
+     */
+    @Override
+    @Transactional
+    public ProductVariantResponse createVariant(Long productId, CreateVariantRequest request) {
+        Product product = productRepository.findByIsDeletedFalseAndId(productId);
+        if (product == null) {
+            throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
+        String status = request.getStatus() != null ? request.getStatus() : VariantStatus.ACTIVE.name();
+        ProductVariant variant = new ProductVariant(productId, request.getSize(), request.getPrice(),
+                request.getStock(), status);
+        ProductVariant savedVariant = productVariantRepository.save(variant);
+
+        log.info("變體已建立，productId={}, variantId={}", productId, savedVariant.getId());
+        return toVariantResponse(savedVariant);
+    }
+
+    /**
+     * 編輯變體（僅尺寸與價格），不影響庫存與上下架狀態
+     */
+    @Override
+    @Transactional
+    public ProductVariantResponse updateVariant(Long productId, Long variantId, UpdateVariantRequest request) {
+        Product product = productRepository.findByIsDeletedFalseAndId(productId);
+        if (product == null) {
+            throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
+        ProductVariant variant = productVariantRepository.findByIdAndProductIdAndIsDeletedFalse(variantId, productId);
+        if (variant == null) {
+            throw new BusinessException(ErrorCode.VARIANT_NOT_FOUND);
+        }
+        variant.setSize(request.getSize());
+        variant.setPrice(request.getPrice());
+        variant.setUpdatedAt(LocalDateTime.now());
+        productVariantRepository.save(variant);
+
+        log.info("變體已更新，variantId={}", variant.getId());
+        return toVariantResponse(variant);
+    }
+
+    /**
+     * 刪除變體（軟刪除），商品僅剩最後一個變體時禁止刪除，回 VARIANT_DELETE_NOT_ALLOWED
+     */
+    @Override
+    @Transactional
+    public void deleteVariant(Long productId, Long variantId) {
+        Product product = productRepository.findByIsDeletedFalseAndId(productId);
+        if (product == null) {
+            throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
+        ProductVariant variant = productVariantRepository.findByIdAndProductIdAndIsDeletedFalse(variantId, productId);
+        if (variant == null) {
+            throw new BusinessException(ErrorCode.VARIANT_NOT_FOUND);
+        }
+        long remaining = productVariantRepository.countByProductIdAndIsDeletedFalse(productId);
+        if (remaining == 1) {
+            throw new BusinessException(ErrorCode.VARIANT_DELETE_NOT_ALLOWED);
+        }
+        variant.setDeleted(true);
+        variant.setUpdatedAt(LocalDateTime.now());
+        productVariantRepository.save(variant);
+
+        log.info("變體已刪除，variantId={}", variant.getId());
+    }
+
+    /**
+     * 切換單一變體上下架狀態，作用範圍僅限該變體，不影響同商品其他尺寸
+     */
+    @Override
+    @Transactional
+    public ProductVariantResponse updateVariantStatus(Long productId, Long variantId,
+                                                      UpdateVariantStatusRequest request) {
+        Product product = productRepository.findByIsDeletedFalseAndId(productId);
+        if (product == null) {
+            throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
+        ProductVariant variant = productVariantRepository.findByIdAndProductIdAndIsDeletedFalse(variantId, productId);
+        if (variant == null) {
+            throw new BusinessException(ErrorCode.VARIANT_NOT_FOUND);
+        }
+        variant.setStatus(request.getStatus());
+        variant.setUpdatedAt(LocalDateTime.now());
+        productVariantRepository.save(variant);
+
+        log.info("變體上下架狀態已更新，variantId={}, status={}", variant.getId(), variant.getStatus());
+        return toVariantResponse(variant);
+    }
+
+    /**
+     * 管理員手動調整變體庫存（正數補貨、負數扣減），不過濾 is_deleted，視為純庫存操作
+     */
+    @Override
+    @Transactional
+    public ProductVariantResponse adjustVariantStock(Long productId, Long variantId,
+                                                     AdjustVariantStockRequest request) {
+        if (!productRepository.existsById(productId)) {
+            throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND);
+        }
+        ProductVariant variant = productVariantRepository.findById(variantId).orElse(null);
+        if (variant == null || !variant.getProductId().equals(productId)) {
+            throw new BusinessException(ErrorCode.VARIANT_NOT_FOUND);
+        }
+        int quantity = request.getQuantity();
+        if (quantity < 0 && variant.getStock() + quantity < 0) {
+            throw new BusinessException(ErrorCode.INSUFFICIENT_STOCK);
+        }
+        variant.setStock(variant.getStock() + quantity);
+        variant.setUpdatedAt(LocalDateTime.now());
+        productVariantRepository.save(variant);
+
+        log.info("變體庫存已調整，variantId={}, quantity={}, stock={}", variant.getId(), quantity, variant.getStock());
+        return toVariantResponse(variant);
+    }
+
+    /**
+     * 將 ProductVariant 轉換為 ProductVariantResponse
+     */
+    private ProductVariantResponse toVariantResponse(ProductVariant variant) {
+        return new ProductVariantResponse(variant.getId(), variant.getProductId(), variant.getSize(),
+                variant.getPrice(), variant.getStock(), variant.getStatus());
+    }
+
 }
