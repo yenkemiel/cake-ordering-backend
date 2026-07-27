@@ -4,6 +4,8 @@ import java.util.List;
 
 /**
  * 分頁回應共用格式
+ *
+ * @param <T> 分頁內容的資料型別
  */
 public class PageResult<T> {
 
