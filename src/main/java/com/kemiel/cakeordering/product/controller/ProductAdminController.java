@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * 商品管理 Controller，提供後台商品 CRUD（不含變體），需 ADMIN 登入。
+ * 商品管理 Controller，提供後台商品與變體 CRUD，需 ADMIN 登入
  */
 @RestController
 @RequestMapping("/api/admin/products")
