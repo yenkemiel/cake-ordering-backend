@@ -38,5 +38,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             + "AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id "
             + "AND v.status = 'ACTIVE' AND v.isDeleted = false)")
     Product findActiveById(@Param("id") Long id);
+
+    long countByCategoryId(Long categoryId);
 }
 
