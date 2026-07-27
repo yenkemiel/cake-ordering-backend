@@ -14,12 +14,16 @@ import java.util.List;
  */
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    @Query("SELECT p FROM Product p WHERE p.isDeleted = false")
-    Page<Product> findByIsDeletedFalse(Pageable pageable);
+    @Query("SELECT p FROM Product p WHERE p.isDeleted = false "
+            + "AND (:status IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id "
+            + "AND v.isDeleted = false AND v.status = :status))")
+    Page<Product> findForAdmin(@Param("status") String status, Pageable pageable);
 
-    @Query("SELECT p FROM Product p WHERE p.isDeleted = false AND p.categoryId IN :categoryIds")
-    Page<Product> findByIsDeletedFalseAndCategoryIdIn(@Param("categoryIds") List<Long> categoryIds,
-                                                      Pageable pageable);
+    @Query("SELECT p FROM Product p WHERE p.isDeleted = false AND p.categoryId IN :categoryIds "
+            + "AND (:status IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id "
+            + "AND v.isDeleted = false AND v.status = :status))")
+    Page<Product> findForAdminByCategoryIds(@Param("categoryIds") List<Long> categoryIds,
+                                            @Param("status") String status, Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE p.isDeleted = false AND p.id = :id")
     Product findByIsDeletedFalseAndId(@Param("id") Long id);
