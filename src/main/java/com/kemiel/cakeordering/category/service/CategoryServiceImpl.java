@@ -9,10 +9,10 @@ import com.kemiel.cakeordering.category.entity.Category;
 import com.kemiel.cakeordering.category.repository.CategoryRepository;
 import com.kemiel.cakeordering.common.exception.BusinessException;
 import com.kemiel.cakeordering.common.exception.ErrorCode;
+import com.kemiel.cakeordering.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +31,7 @@ import java.util.Map;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
-    private final JdbcTemplate jdbcTemplate;
+    private final ProductRepository productRepository;
 
     /**
      * 查詢所有分類，依 sort_order 升冪排序
@@ -98,9 +98,8 @@ public class CategoryServiceImpl implements CategoryService {
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CATEGORY_NOT_FOUND));
-        Long productCount = jdbcTemplate.queryForObject(
-                "SELECT COUNT(id) FROM products WHERE category_id = ?", Long.class, id);
-        if (productCount != null && productCount > 0) {
+        long productCount = productRepository.countByCategoryId(id);
+        if (productCount > 0) {
             throw new BusinessException(ErrorCode.CATEGORY_IN_USE);
         }
         try {
