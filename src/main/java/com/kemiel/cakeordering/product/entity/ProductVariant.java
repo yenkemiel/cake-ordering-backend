@@ -48,7 +48,7 @@ public class ProductVariant {
     private LocalDateTime updatedAt;
 
     @Column(name = "is_deleted", nullable = false)
-    private Integer isDeleted;
+    private Boolean isDeleted;
 
     protected ProductVariant() {
     }
@@ -61,7 +61,7 @@ public class ProductVariant {
         this.status = status;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
-        this.isDeleted = 0;
+        this.isDeleted = false;
     }
 
     public Long getId() {
@@ -124,11 +124,11 @@ public class ProductVariant {
         this.updatedAt = updatedAt;
     }
 
-    public Integer getIsDeleted() {
+    public Boolean getDeleted() {
         return isDeleted;
     }
 
-    public void setIsDeleted(Integer isDeleted) {
-        this.isDeleted = isDeleted;
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
     }
 }
