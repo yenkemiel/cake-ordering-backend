@@ -2,6 +2,7 @@ package com.kemiel.cakeordering.admin.interceptor;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -22,5 +23,18 @@ public class WebMvcConfig implements WebMvcConfigurer {
         registry.addInterceptor(adminSessionInterceptor)
                 .addPathPatterns("/api/admin/**")
                 .excludePathPatterns("/api/admin/login", "/api/admin/logout");
+    }
+
+    /**
+     * 允許前端（Live Server 本機端口）跨來源請求，
+     * 後台頁面需要帶 Session Cookie，故 allowCredentials 設為 true
+     */
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/api/**")
+                .allowedOrigins("http://127.0.0.1:5500", "http://localhost:5500")
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
 }
