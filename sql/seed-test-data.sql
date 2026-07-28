@@ -31,7 +31,7 @@ INSERT INTO products (name, category_id, description, image_url, is_deleted, cre
     ('藍莓重乳酪蛋糕', 3, '濃郁重乳酪搭配藍莓果醬，口感綿密扎實。',                   'https://placehold.co/600x450?text=Blueberry+Cheesecake', 0, NOW(), NOW()),
     ('造型蠟燭',       4, '各式造型生日蠟燭，可依需求選購。',                         'https://placehold.co/600x450?text=Candle',               0, NOW(), NOW()),
     ('生日卡片',       4, '手工設計生日卡片，可搭配蛋糕加購。',                       'https://placehold.co/600x450?text=Birthday+Card',        0, NOW(), NOW()),
-    ('杜拜巧克力',     5, '中東風味手工巧克力，內餡開心果醬與酥脆卡達果絲。',         'https://placehold.co/600x450?text=Dubai+Chocolate',      0, NOW(), NOW());
+    ('杜拜巧克力Q餅',   5, '中東風味手工巧克力，內餡開心果醬與酥脆卡達果絲。',             'https://placehold.co/600x450?text=Dubai+Chocolate',      0, NOW(), NOW());
 
 -- ============================================================
 -- product_variants（商品變體）
@@ -85,9 +85,9 @@ SELECT id, NULL, 60, 20, 'ACTIVE', 0, 0, NOW(), NOW() FROM products WHERE name =
 INSERT INTO product_variants (product_id, size, price, stock, status, version, is_deleted, created_at, updated_at)
 SELECT id, NULL, 45, 15, 'INACTIVE', 0, 0, NOW(), NOW() FROM products WHERE name = '生日卡片';
 
--- 杜拜巧克力（無尺寸差異，其他分類單一商品）
+-- 杜拜巧克力Q餅（無尺寸差異，其他分類單一商品）
 INSERT INTO product_variants (product_id, size, price, stock, status, version, is_deleted, created_at, updated_at)
-SELECT id, NULL, 90, 6, 'ACTIVE', 0, 0, NOW(), NOW() FROM products WHERE name = '杜拜巧克力';
+SELECT id, NULL, 90, 6, 'ACTIVE', 0, 0, NOW(), NOW() FROM products WHERE name = '杜拜巧克力Q餅';
 
 -- ============================================================
 -- 商品照片替換：由 placehold.co 佔位圖換成真實照片
@@ -106,4 +106,4 @@ UPDATE products SET image_url = 'https://duk.tw/sBWHyd.webp' WHERE name = '原�
 UPDATE products SET image_url = 'https://duk.tw/dCZi0w.webp' WHERE name = '藍莓重乳酪蛋糕';
 UPDATE products SET image_url = 'https://duk.tw/okGEqo.webp' WHERE name = '造型蠟燭';
 UPDATE products SET image_url = 'https://duk.tw/PbCREK.webp' WHERE name = '生日卡片';
-UPDATE products SET image_url = 'https://duk.tw/THttBd.webp' WHERE name = '杜拜巧克力';
+UPDATE products SET image_url = 'https://duk.tw/THttBd.webp' WHERE name = '杜拜巧克力Q餅';
