@@ -1,4 +1,4 @@
-package com.kemiel.cakeordering.admin.interceptor;
+package com.kemiel.cakeordering.admin.config;
 
 import com.kemiel.cakeordering.admin.entity.Admin;
 import com.kemiel.cakeordering.admin.repository.AdminRepository;
