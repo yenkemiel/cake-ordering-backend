@@ -88,3 +88,22 @@ SELECT id, NULL, 45, 15, 'INACTIVE', 0, 0, NOW(), NOW() FROM products WHERE name
 -- 杜拜巧克力（無尺寸差異，其他分類單一商品）
 INSERT INTO product_variants (product_id, size, price, stock, status, version, is_deleted, created_at, updated_at)
 SELECT id, NULL, 90, 6, 'ACTIVE', 0, 0, NOW(), NOW() FROM products WHERE name = '杜拜巧克力';
+
+-- ============================================================
+-- 商品照片替換：由 placehold.co 佔位圖換成真實照片
+-- 圖床：duk.tw（原規劃使用 GitHub raw 連結，因 cake-ordering-frontend
+-- repo 為 Private，raw 連結會帶時效性 token，不適合存入需長期穩定的
+-- image_url 欄位，改用 duk.tw 永久連結）
+-- 圖片原始檔另存於 cake-ordering-frontend repo 的 admin/img/ 資料夾備份
+-- ============================================================
+UPDATE products SET image_url = 'https://duk.tw/cLSxvj.webp' WHERE name = '綜合水果蛋糕';
+UPDATE products SET image_url = 'https://duk.tw/YCYs2B.webp' WHERE name = '草莓奶油蛋糕';
+UPDATE products SET image_url = 'https://duk.tw/LSeJwG.webp' WHERE name = '抹茶千層';
+UPDATE products SET image_url = 'https://duk.tw/rnb45L.webp' WHERE name = '芒果生乳酪蛋糕';
+UPDATE products SET image_url = 'https://duk.tw/MPWk7z.webp' WHERE name = '原味千層';
+UPDATE products SET image_url = 'https://duk.tw/5wj5UI.webp' WHERE name = '巧克力千層';
+UPDATE products SET image_url = 'https://duk.tw/sBWHyd.webp' WHERE name = '原味巴斯克';
+UPDATE products SET image_url = 'https://duk.tw/dCZi0w.webp' WHERE name = '藍莓重乳酪蛋糕';
+UPDATE products SET image_url = 'https://duk.tw/okGEqo.webp' WHERE name = '造型蠟燭';
+UPDATE products SET image_url = 'https://duk.tw/PbCREK.webp' WHERE name = '生日卡片';
+UPDATE products SET image_url = 'https://duk.tw/THttBd.webp' WHERE name = '杜拜巧克力';
