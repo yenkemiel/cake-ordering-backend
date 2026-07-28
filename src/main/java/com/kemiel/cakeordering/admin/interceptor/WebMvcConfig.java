@@ -1,5 +1,6 @@
 package com.kemiel.cakeordering.admin.interceptor;
 
+import com.kemiel.cakeordering.common.config.CorsProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebMvcConfig implements WebMvcConfigurer {
 
     private final AdminSessionInterceptor adminSessionInterceptor;
+    private final CorsProperties corsProperties;
 
     /**
      * 攔截所有 /api/admin/** 路徑，登入／登出本身排除在外
@@ -32,7 +34,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("http://127.0.0.1:5500", "http://localhost:5500")
+                .allowedOrigins(corsProperties.getAllowedOrigins().toArray(new String[0]))
                 .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
