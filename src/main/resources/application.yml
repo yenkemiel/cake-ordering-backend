@@ -11,8 +11,8 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: false
-    profiles:
-      active: local
+  profiles:
+    active: local
 
 server:
   servlet:
