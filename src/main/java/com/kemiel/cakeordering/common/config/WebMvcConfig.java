@@ -1,6 +1,6 @@
-package com.kemiel.cakeordering.admin.interceptor;
+package com.kemiel.cakeordering.common.config;
 
-import com.kemiel.cakeordering.common.config.CorsProperties;
+import com.kemiel.cakeordering.admin.interceptor.AdminSessionInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
