@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -18,10 +19,14 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class AdminSessionInterceptor implements HandlerInterceptor {
 
     /**
-     * 檢查 Session 是否存在且含有效管理員屬性，否則直接拋出 401，不進入 Controller
+     * 檢查 Session 是否存在且含有效管理員屬性，否則直接拋出 401，不進入 Controller；
+     * CORS preflight（OPTIONS）請求不帶 Cookie 屬正常瀏覽器行為，直接放行不進入 Session 檢查
      */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        if (HttpMethod.OPTIONS.matches(request.getMethod())) {
+            return true;
+        }
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute(SessionConstants.ADMIN_ID) == null) {
             log.info("未登入呼叫後台 API，path={}", request.getRequestURI());
