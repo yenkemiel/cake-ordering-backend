@@ -23,6 +23,9 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 
 /**
  * order 模組 Testcontainers 整合測試，驗證建立訂單在真實 MySQL 交易行為下的正確性
@@ -72,6 +75,22 @@ class OrderServiceIntegrationTest extends AbstractIntegrationTest {
         Order savedOrder = orderRepository.findByOrderNoAndPhone(response.getOrderNo(), request.getPhone())
                 .orElseThrow();
         assertThat(savedOrder.getItems()).hasSize(1);
+    }
+
+    @Test
+    @DisplayName("Email 寄送失敗不影響訂單已建立的結果")
+    void shouldKeepOrderCreated_whenEmailSendFails() {
+        doThrow(new RuntimeException("Resend API timeout"))
+                .when(emailApiClient).sendOrderConfirmation(any());
+
+        CreateOrderRequest request = buildRequest(1);
+        OrderResponse response = orderService.createOrder(request);
+
+        assertThatCode(() -> orderService.sendOrderConfirmationEmail(response))
+                .doesNotThrowAnyException();
+
+        assertThat(orderRepository.findByOrderNoAndPhone(response.getOrderNo(), request.getPhone()))
+                .isPresent();
     }
 
     private CreateOrderRequest buildRequest(int quantity) {
