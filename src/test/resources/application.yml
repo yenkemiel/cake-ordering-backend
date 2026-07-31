@@ -1,0 +1,4 @@
+ADMIN_INITIAL_USERNAME: test-admin
+ADMIN_INITIAL_PASSWORD: test-password-only-for-tests
+EMAIL_API_KEY: test-api-key-not-real
+EMAIL_SENDER_ADDRESS: test@example.com
