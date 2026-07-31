@@ -1,6 +1,7 @@
 -- ============================================================
 -- 線上蛋糕訂購系統（WishCake）｜seed-test-data.sql
 -- 依「開發日誌-8｜模組04 product（種子資料與分類擴充）」§2.2～2.3 定案內容
+-- 訂單模組測試情境依「開發日誌-10｜模組06 order（Testcontainers 整合測試）」§3 追加
 --
 -- 用途：本機開發測試用假資料（商品＋變體），非正式環境必要種子資料，
 --       不受 Flyway 管理，不會被自動套用，內容預期會隨測試需求調整。
@@ -12,13 +13,14 @@
 -- 執行方式：
 --   mysql -h 127.0.0.1 -P 3306 -u cake_app -p cake_ordering_db < sql/seed-test-data.sql
 --
--- 內容：5 分類、11 商品、19 筆變體，涵蓋正常多尺寸、混合上下架、
+-- 內容：5 分類、11 商品、15 筆變體，涵蓋正常多尺寸、混合上下架、
 --       缺貨但仍上架、單一尺寸、全部下架、無尺寸差異（配件／小甜點）、
---       單一商品的分類等測試情境。
+--       單一商品的分類等測試情境；另追加訂單模組測試用 1 商品、1 變體，
+--       涵蓋變體／商品軟刪除情境（見第 4 節）。
 -- ============================================================
 
 -- ============================================================
--- products（商品）
+-- 1. products（商品）
 -- ============================================================
 INSERT INTO products (name, category_id, description, image_url, is_deleted, created_at, updated_at) VALUES
     ('綜合水果蛋糕',   1, '嚴選當季新鮮水果，酸甜平衡，適合各種慶祝場合。',           'https://placehold.co/600x450?text=Fruit+Mix+Cake',       0, NOW(), NOW()),
@@ -34,7 +36,7 @@ INSERT INTO products (name, category_id, description, image_url, is_deleted, cre
     ('杜拜巧克力Q餅',   5, '中東風味手工巧克力，內餡開心果醬與酥脆卡達果絲。',             'https://placehold.co/600x450?text=Dubai+Chocolate',      0, NOW(), NOW());
 
 -- ============================================================
--- product_variants（商品變體）
+-- 2. product_variants（商品變體）
 -- ============================================================
 
 -- 綜合水果蛋糕（正常多尺寸，全部 ACTIVE）
@@ -90,7 +92,7 @@ INSERT INTO product_variants (product_id, size, price, stock, status, version, i
 SELECT id, NULL, 90, 6, 'ACTIVE', 0, 0, NOW(), NOW() FROM products WHERE name = '杜拜巧克力Q餅';
 
 -- ============================================================
--- 商品照片替換：由 placehold.co 佔位圖換成真實照片
+-- 3. 商品照片替換：由 placehold.co 佔位圖換成真實照片
 -- 圖床：duk.tw（原規劃使用 GitHub raw 連結，因 cake-ordering-frontend
 -- repo 為 Private，raw 連結會帶時效性 token，不適合存入需長期穩定的
 -- image_url 欄位，改用 duk.tw 永久連結）
@@ -107,3 +109,23 @@ UPDATE products SET image_url = 'https://duk.tw/dCZi0w.webp' WHERE name = '藍�
 UPDATE products SET image_url = 'https://duk.tw/okGEqo.webp' WHERE name = '造型蠟燭';
 UPDATE products SET image_url = 'https://duk.tw/PbCREK.webp' WHERE name = '生日卡片';
 UPDATE products SET image_url = 'https://duk.tw/THttBd.webp' WHERE name = '杜拜巧克力Q餅';
+
+-- ============================================================
+-- 4. 訂單模組測試種子資料（VARIANT_NOT_FOUND 軟刪除情境）
+-- 依「開發日誌-10｜模組06 order（Testcontainers 整合測試）」§3 追加，
+-- 涵蓋「變體本身已被軟刪除」與「所屬商品已被軟刪除」兩種原本無種子
+-- 資料可測的情境
+-- ============================================================
+
+-- 訂單模組測試：variant 已軟刪除情境（VARIANT_NOT_FOUND）
+UPDATE product_variants SET is_deleted = 1
+WHERE product_id = (SELECT id FROM products WHERE name = '藍莓重乳酪蛋糕')
+  AND size = '6吋';
+
+-- 訂單模組測試：所屬商品已軟刪除情境（VARIANT_NOT_FOUND）
+INSERT INTO products (name, category_id, description, image_url, is_deleted, created_at, updated_at)
+VALUES ('測試用已刪除商品', 5, '測試用', 'https://placehold.co/600x450?text=Deleted', 1, NOW(), NOW());
+
+INSERT INTO product_variants (product_id, size, price, stock, status, version, is_deleted, created_at, updated_at)
+SELECT id, '6吋', 500, 5, 'ACTIVE', 0, 0, NOW(), NOW()
+FROM products WHERE name = '測試用已刪除商品';
