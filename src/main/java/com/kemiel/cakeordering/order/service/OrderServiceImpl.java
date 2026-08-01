@@ -24,7 +24,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -44,6 +47,10 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 建立訂單，含金額重算、樂觀鎖扣庫存；不包含 Email 通知信呼叫
+     * variant／product 第一次呼叫 findById 變成 Hibernate managed 狀態的順序，決定了
+     * flush 時 UPDATE product_variants 實際送出的順序，因此存在性檢查與庫存檢查／扣庫存
+     * 都依 variantId 排序後的 sortedItems 進行；金額計算與組 OrderItem 改成查已載入好的
+     * Map（不重新呼叫 findById），維持訂單明細顯示順序與 client 原始送出順序一致
      */
     @Override
     @Transactional
@@ -52,10 +59,14 @@ public class OrderServiceImpl implements OrderService {
                 ? BigDecimal.valueOf(250)
                 : BigDecimal.ZERO;
 
-        List<OrderItem> items = new ArrayList<>();
-        BigDecimal totalAmount = shippingFee;
+        List<OrderItemRequest> sortedItems = request.getItems().stream()
+                .sorted(Comparator.comparing(OrderItemRequest::getVariantId))
+                .toList();
 
-        for (OrderItemRequest itemRequest : request.getItems()) {
+        Map<Long, ProductVariant> variantMap = new HashMap<>();
+        Map<Long, Product> productMap = new HashMap<>();
+
+        for (OrderItemRequest itemRequest : sortedItems) {
             ProductVariant variant = productVariantRepository.findById(itemRequest.getVariantId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.VARIANT_NOT_FOUND));
 
@@ -65,6 +76,17 @@ public class OrderServiceImpl implements OrderService {
             if (variant.getDeleted() || !"ACTIVE".equals(variant.getStatus()) || product.getDeleted()) {
                 throw new BusinessException(ErrorCode.VARIANT_NOT_FOUND);
             }
+
+            variantMap.put(variant.getId(), variant);
+            productMap.put(variant.getId(), product);
+        }
+
+        List<OrderItem> items = new ArrayList<>();
+        BigDecimal totalAmount = shippingFee;
+
+        for (OrderItemRequest itemRequest : request.getItems()) {
+            ProductVariant variant = variantMap.get(itemRequest.getVariantId());
+            Product product = productMap.get(itemRequest.getVariantId());
 
             BigDecimal subtotal = variant.getPrice().multiply(BigDecimal.valueOf(itemRequest.getQuantity()));
             totalAmount = totalAmount.add(subtotal);
@@ -79,23 +101,18 @@ public class OrderServiceImpl implements OrderService {
             items.add(item);
         }
 
-        List<ProductVariant> touchedVariants = new ArrayList<>();
-
-        for (OrderItemRequest itemRequest : request.getItems()) {
-            ProductVariant variant = productVariantRepository.findById(itemRequest.getVariantId())
-                    .orElseThrow(() -> new BusinessException(ErrorCode.VARIANT_NOT_FOUND));
+        for (OrderItemRequest itemRequest : sortedItems) {
+            ProductVariant variant = variantMap.get(itemRequest.getVariantId());
 
             if (variant.getStock() < itemRequest.getQuantity()) {
                 throw new BusinessException(ErrorCode.INSUFFICIENT_STOCK);
             }
 
             variant.setStock(variant.getStock() - itemRequest.getQuantity());
-            touchedVariants.add(variant);
         }
 
-        for (ProductVariant variant : touchedVariants) {
-            productVariantRepository.save(variant);
-        }
+        productVariantRepository.saveAll(variantMap.values());
+        productVariantRepository.flush();
 
         Order order = new Order();
         order.setOrderNo(generateOrderNo());
@@ -119,19 +136,12 @@ public class OrderServiceImpl implements OrderService {
         return toResponse(order);
     }
 
-    /**
-     * 產生訂單編號：ORD + 14 碼時間戳（yyyyMMddHHmmss）+ 4 碼亂數，共 21 碼
-     * 不依賴資料庫自增 id，可在 Order 物件建立當下就備齊，createOrder() 因此只需一次 save()
-     */
     private String generateOrderNo() {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String random = String.format("%04d", ThreadLocalRandom.current().nextInt(ORDER_NO_RANDOM_BOUND));
         return "ORD" + timestamp + random;
     }
 
-    /**
-     * 寄送訂單成立通知信，失敗只記錄 log，不影響已建立的訂單
-     */
     @Override
     public void sendOrderConfirmationEmail(OrderResponse order) {
         try {
@@ -141,9 +151,6 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    /**
-     * 依訂單編號與電話查詢訂單，找不到或電話不符統一回 ORDER_NOT_FOUND
-     */
     @Override
     @Transactional(readOnly = true)
     public OrderResponse queryOrder(QueryOrderRequest request) {
