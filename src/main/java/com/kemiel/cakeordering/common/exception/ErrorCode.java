@@ -8,6 +8,7 @@ public enum ErrorCode {
     // 通用
     SUCCESS("SUCCESS", "操作成功"),
     INTERNAL_ERROR("INTERNAL_ERROR", "系統發生非預期錯誤，請稍後再試"),
+    CONCURRENT_UPDATE_CONFLICT("CONCURRENT_UPDATE_CONFLICT", "系統忙碌，請稍後再試"),
     VALIDATION_ERROR("VALIDATION_ERROR", "請求參數格式或內容不正確，請確認後重新送出"),
     UNAUTHORIZED("UNAUTHORIZED", "請先登入管理後台"),
     FORBIDDEN("FORBIDDEN", "您無此操作權限"),
