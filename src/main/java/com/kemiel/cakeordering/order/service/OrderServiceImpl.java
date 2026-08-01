@@ -51,6 +51,9 @@ public class OrderServiceImpl implements OrderService {
      * flush 時 UPDATE product_variants 實際送出的順序，因此存在性檢查與庫存檢查／扣庫存
      * 都依 variantId 排序後的 sortedItems 進行；金額計算與組 OrderItem 改成查已載入好的
      * Map（不重新呼叫 findById），維持訂單明細顯示順序與 client 原始送出順序一致
+     * variantMap／productMap 的 key 統一用 itemRequest.getVariantId()（request 帶入值），
+     * 不用 variant.getId()（entity 自身欄位）——真實 DB 情境下兩者恆等，但不應讓 Map 查找
+     * 依賴「entity 載入後自報的 id 是否等於查詢時用的 id」這個隱性假設，見開發日誌-11 §1.1
      */
     @Override
     @Transactional
@@ -77,8 +80,8 @@ public class OrderServiceImpl implements OrderService {
                 throw new BusinessException(ErrorCode.VARIANT_NOT_FOUND);
             }
 
-            variantMap.put(variant.getId(), variant);
-            productMap.put(variant.getId(), product);
+            variantMap.put(itemRequest.getVariantId(), variant);
+            productMap.put(itemRequest.getVariantId(), product);
         }
 
         List<OrderItem> items = new ArrayList<>();
