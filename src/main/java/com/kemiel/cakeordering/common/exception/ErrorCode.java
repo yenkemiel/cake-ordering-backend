@@ -28,6 +28,7 @@ public enum ErrorCode {
 
     // 訂單
     ORDER_NOT_FOUND("ORDER_NOT_FOUND", "查無此訂單，請確認訂單編號與電話是否正確"),
+    ADMIN_ORDER_NOT_FOUND("ADMIN_ORDER_NOT_FOUND", "查無此訂單，請確認訂單編號是否正確"),
     INVALID_ORDER_STATUS_TRANSITION("INVALID_ORDER_STATUS_TRANSITION", "訂單目前狀態不允許此操作"),
     ORDER_CANCEL_NOT_ALLOWED("ORDER_CANCEL_NOT_ALLOWED", "此訂單已出貨或已完成，無法取消"),
 
