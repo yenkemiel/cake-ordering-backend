@@ -4,6 +4,7 @@ import com.kemiel.cakeordering.common.exception.BusinessException;
 import com.kemiel.cakeordering.common.exception.ErrorCode;
 import com.kemiel.cakeordering.common.response.PageResult;
 import com.kemiel.cakeordering.order.dto.CreateOrderRequest;
+import com.kemiel.cakeordering.order.dto.OrderDetailResponse;
 import com.kemiel.cakeordering.order.dto.OrderItemRequest;
 import com.kemiel.cakeordering.order.dto.OrderItemResponse;
 import com.kemiel.cakeordering.order.dto.OrderResponse;
@@ -152,6 +153,9 @@ public class OrderServiceImpl implements OrderService {
         return toResponse(order);
     }
 
+    /**
+     * 產生訂單編號，格式 ORD + 時間戳 + 四位隨機數
+     */
     private String generateOrderNo() {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String random = String.format("%04d", ThreadLocalRandom.current().nextInt(ORDER_NO_RANDOM_BOUND));
@@ -167,6 +171,10 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    /**
+     * 依訂單編號與電話查詢單筆訂單，找不到時統一回 ORDER_NOT_FOUND，
+     * 不區分是編號錯還是電話錯，避免透露訂單是否存在
+     */
     @Override
     @Transactional(readOnly = true)
     public OrderResponse queryOrder(QueryOrderRequest request) {
@@ -175,6 +183,9 @@ public class OrderServiceImpl implements OrderService {
         return toResponse(order);
     }
 
+    /**
+     * 將 Order 轉換為訪客端完整回應格式，供建立訂單與查詢訂單共用
+     */
     private OrderResponse toResponse(Order order) {
         List<OrderItemResponse> itemResponses = order.getItems().stream()
                 .map(item -> new OrderItemResponse(item.getProductName(), item.getVariantSize(),
@@ -209,14 +220,40 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
+     * 檢查 status 是否為 PENDING／SHIPPED／COMPLETED／CANCELLED 其中之一
+     */
+    private boolean isValidStatus(String status) {
+        return STATUS_PENDING.equals(status) || STATUS_SHIPPED.equals(status)
+                || STATUS_COMPLETED.equals(status) || STATUS_CANCELLED.equals(status);
+    }
+
+    /**
+     * page／size 為 null 時採用預設值（page=0, size=20），依 createdAt 降冪排序，
+     * 讓後台人員優先看到新進訂單
+     */
+    private Pageable buildPageable(Integer page, Integer size) {
+        int resolvedPage = (page != null) ? page : 0;
+        int resolvedSize = (size != null) ? size : 20;
+        return PageRequest.of(resolvedPage, resolvedSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+    }
+
+    /**
+     * 將 Order 轉換為列表用的精簡回應格式
+     */
+    private OrderSummaryResponse toSummaryResponse(Order order) {
+        return new OrderSummaryResponse(order.getId(), order.getOrderNo(), order.getCustomerName(),
+                order.getStatus(), order.getPickupDate(), order.getTotalAmount(), order.getCreatedAt());
+    }
+
+    /**
      * 查詢單筆訂單完整明細，供後台檢視使用
      */
     @Override
     @Transactional(readOnly = true)
-    public OrderResponse getOrderDetailForAdmin(Long id) {
+    public OrderDetailResponse getOrderDetailForAdmin(Long id) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
-        return toResponse(order);
+                .orElseThrow(() -> new BusinessException(ErrorCode.ADMIN_ORDER_NOT_FOUND));
+        return toDetailResponse(order);
     }
 
     /**
@@ -224,9 +261,9 @@ public class OrderServiceImpl implements OrderService {
      */
     @Override
     @Transactional
-    public OrderResponse updateOrderStatus(Long id, UpdateOrderStatusRequest request) {
+    public OrderDetailResponse updateOrderStatus(Long id, UpdateOrderStatusRequest request) {
         Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.ORDER_NOT_FOUND));
+                .orElseThrow(() -> new BusinessException(ErrorCode.ADMIN_ORDER_NOT_FOUND));
         String currentStatus = order.getStatus();
         String targetStatus = request.getStatus();
 
@@ -251,7 +288,7 @@ public class OrderServiceImpl implements OrderService {
 
         log.info("訂單狀態更新，orderId={}, orderNo={}, from={}, to={}",
                 order.getId(), order.getOrderNo(), currentStatus, order.getStatus());
-        return toResponse(order);
+        return toDetailResponse(order);
     }
 
     /**
@@ -287,28 +324,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * 將 Order 轉換為列表用的精簡回應格式
+     * 將 Order 轉換為後台明細用的完整回應格式（含 id）
      */
-    private OrderSummaryResponse toSummaryResponse(Order order) {
-        return new OrderSummaryResponse(order.getId(), order.getOrderNo(), order.getCustomerName(),
-                order.getStatus(), order.getPickupDate(), order.getTotalAmount(), order.getCreatedAt());
-    }
-
-    /**
-     * 檢查 status 是否為 PENDING／SHIPPED／COMPLETED／CANCELLED 其中之一
-     */
-    private boolean isValidStatus(String status) {
-        return STATUS_PENDING.equals(status) || STATUS_SHIPPED.equals(status)
-                || STATUS_COMPLETED.equals(status) || STATUS_CANCELLED.equals(status);
-    }
-
-    /**
-     * page／size 為 null 時採用預設值（page=0, size=20），依 createdAt 降冪排序，
-     * 讓後台人員優先看到新進訂單
-     */
-    private Pageable buildPageable(Integer page, Integer size) {
-        int resolvedPage = (page != null) ? page : 0;
-        int resolvedSize = (size != null) ? size : 20;
-        return PageRequest.of(resolvedPage, resolvedSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+    private OrderDetailResponse toDetailResponse(Order order) {
+        List<OrderItemResponse> itemResponses = new ArrayList<>();
+        for (OrderItem item : order.getItems()) {
+            itemResponses.add(new OrderItemResponse(item.getProductName(), item.getVariantSize(),
+                    item.getQuantity(), item.getUnitPrice(), item.getSubtotal()));
+        }
+        return new OrderDetailResponse(order.getId(), order.getOrderNo(), order.getStatus(),
+                order.getCustomerName(), order.getPhone(), order.getEmail(), order.getShippingMethod(),
+                order.getPaymentMethod(), order.getAddress(), order.getPickupDate(), order.getRemark(),
+                itemResponses, order.getShippingFee(), order.getTotalAmount(), order.getCreatedAt());
     }
 }

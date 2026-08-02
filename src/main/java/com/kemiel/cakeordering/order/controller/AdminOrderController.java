@@ -2,7 +2,7 @@ package com.kemiel.cakeordering.order.controller;
 
 import com.kemiel.cakeordering.common.response.ApiResponse;
 import com.kemiel.cakeordering.common.response.PageResult;
-import com.kemiel.cakeordering.order.dto.OrderResponse;
+import com.kemiel.cakeordering.order.dto.OrderDetailResponse;
 import com.kemiel.cakeordering.order.dto.OrderSummaryResponse;
 import com.kemiel.cakeordering.order.dto.UpdateOrderStatusRequest;
 import com.kemiel.cakeordering.order.service.OrderService;
@@ -42,13 +42,13 @@ public class AdminOrderController {
 
     @Operation(summary = "[FR-ORD-004] 後台訂單明細")
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<OrderResponse>> detail(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<OrderDetailResponse>> detail(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(orderService.getOrderDetailForAdmin(id)));
     }
 
     @Operation(summary = "[FR-ORD-005] 後台更新訂單狀態")
     @PatchMapping("/{id}/status")
-    public ResponseEntity<ApiResponse<OrderResponse>> updateStatus(
+    public ResponseEntity<ApiResponse<OrderDetailResponse>> updateStatus(
             @PathVariable Long id, @Valid @RequestBody UpdateOrderStatusRequest request) {
         return ResponseEntity.ok(ApiResponse.success(orderService.updateOrderStatus(id, request)));
     }

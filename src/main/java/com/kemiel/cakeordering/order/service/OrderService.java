@@ -2,6 +2,7 @@ package com.kemiel.cakeordering.order.service;
 
 import com.kemiel.cakeordering.common.response.PageResult;
 import com.kemiel.cakeordering.order.dto.CreateOrderRequest;
+import com.kemiel.cakeordering.order.dto.OrderDetailResponse;
 import com.kemiel.cakeordering.order.dto.OrderResponse;
 import com.kemiel.cakeordering.order.dto.OrderSummaryResponse;
 import com.kemiel.cakeordering.order.dto.QueryOrderRequest;
@@ -20,7 +21,7 @@ public interface OrderService {
 
     PageResult<OrderSummaryResponse> listOrdersForAdmin(String status, Integer page, Integer size);
 
-    OrderResponse getOrderDetailForAdmin(Long id);
+    OrderDetailResponse getOrderDetailForAdmin(Long id);
 
-    OrderResponse updateOrderStatus(Long id, UpdateOrderStatusRequest request);
+    OrderDetailResponse updateOrderStatus(Long id, UpdateOrderStatusRequest request);
 }
