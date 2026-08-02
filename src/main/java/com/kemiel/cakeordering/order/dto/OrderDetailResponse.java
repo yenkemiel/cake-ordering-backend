@@ -5,6 +5,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * 後台訂單明細回應格式，內容同訪客端 OrderResponse 並額外含資料庫 id，
+ * 供 FR-ORD-004（訂單明細）／FR-ORD-005（狀態更新）使用
+ */
 public class OrderDetailResponse {
 
     private Long id;
