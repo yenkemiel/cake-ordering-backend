@@ -30,10 +30,11 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<ApiResponse<PageResult<ProductCustomerSummaryResponse>>> list(
             @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long excludeCategoryId,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
         PageResult<ProductCustomerSummaryResponse> result =
-                productService.listProductsForCustomer(categoryId, page, size);
+                productService.listProductsForCustomer(categoryId, excludeCategoryId, page, size);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
