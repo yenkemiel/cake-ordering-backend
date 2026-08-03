@@ -23,7 +23,8 @@ public interface ProductService {
     PageResult<ProductSummaryResponse> listProductsForAdmin(List<Long> categoryIds, String status, String sort,
                                                             Integer page, Integer size);
 
-    PageResult<ProductCustomerSummaryResponse> listProductsForCustomer(Long categoryId, Integer page, Integer size);
+    PageResult<ProductCustomerSummaryResponse> listProductsForCustomer(Long categoryId, Long excludeCategoryId,
+                                                                       Integer page, Integer size);
 
     ProductCustomerDetailResponse getProductDetail(Long id);
 
