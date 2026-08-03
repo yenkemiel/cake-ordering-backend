@@ -33,7 +33,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,8 +79,8 @@ public class OrderServiceImpl implements OrderService {
                 .sorted(Comparator.comparing(OrderItemRequest::getVariantId))
                 .toList();
 
-        Map<Long, ProductVariant> variantMap = new HashMap<>();
-        Map<Long, Product> productMap = new HashMap<>();
+        Map<Long, ProductVariant> variantMap = new LinkedHashMap<>();
+        Map<Long, Product> productMap = new LinkedHashMap<>();
 
         for (OrderItemRequest itemRequest : sortedItems) {
             ProductVariant variant = productVariantRepository.findById(itemRequest.getVariantId())
