@@ -83,6 +83,10 @@ public class OrderServiceImpl implements OrderService {
         Map<Long, Product> productMap = new LinkedHashMap<>();
 
         for (OrderItemRequest itemRequest : sortedItems) {
+            if (variantMap.containsKey(itemRequest.getVariantId())) {
+                continue;
+            }
+
             ProductVariant variant = productVariantRepository.findById(itemRequest.getVariantId())
                     .orElseThrow(() -> new BusinessException(ErrorCode.VARIANT_NOT_FOUND));
 
