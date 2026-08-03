@@ -292,10 +292,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
-     * 取消訂單並回補品項對應變體庫存，比照建立訂單扣庫存的三段式鎖序結構
-     * ：先依 variantId 排序載入並檢查存在性，再依訂單原始品項順序
-     * 累加回補量於記憶體中，最後統一對受影響的變體呼叫 save()，避免多品項
-     * 交叉搶鎖情境下的死鎖風險
+     * 取消訂單並回補庫存，供訂單狀態更新為已取消時內部呼叫
      */
     private void cancelOrderAndRestock(Order order) {
         List<OrderItem> items = new ArrayList<>(order.getItems());
@@ -315,9 +312,8 @@ public class OrderServiceImpl implements OrderService {
             variant.setStock(variant.getStock() + item.getQuantity());
         }
 
-        for (ProductVariant variant : variantMap.values()) {
-            productVariantRepository.saveAndFlush(variant);
-        }
+        productVariantRepository.saveAll(variantMap.values());
+        productVariantRepository.flush();
 
         order.setStatus(STATUS_CANCELLED);
         orderRepository.saveAndFlush(order);
