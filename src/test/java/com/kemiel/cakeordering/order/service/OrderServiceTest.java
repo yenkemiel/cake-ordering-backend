@@ -21,6 +21,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.math.BigDecimal;
@@ -121,7 +122,7 @@ class OrderServiceTest {
         when(productRepository.findById(100L)).thenReturn(Optional.of(product));
         when(productVariantRepository.saveAll(anyCollection()))
                 .thenThrow(new ObjectOptimisticLockingFailureException(ProductVariant.class, 1L));
-        
+
         CreateOrderRequest request = buildRequest(2);
 
         assertThatThrownBy(() -> orderService.createOrder(request))
@@ -190,5 +191,25 @@ class OrderServiceTest {
         request.setPickupDate(LocalDate.now().plusDays(3));
         request.setItems(List.of(item));
         return request;
+    }
+
+    @Test
+    @DisplayName("order_no 撞號時應拋出 ORDER_NO_DUPLICATE，且不吞掉例外")
+    void shouldThrowOrderNoDuplicate_whenOrderNoAlreadyExists() {
+        ProductVariant variant = new ProductVariant(100L, "6吋", BigDecimal.valueOf(680), 10, "ACTIVE");
+        variant.setDeleted(false);
+        Product product = new Product("測試蛋糕", 1L, "測試用", null);
+        product.setDeleted(false);
+
+        when(productVariantRepository.findById(1L)).thenReturn(Optional.of(variant));
+        when(productRepository.findById(100L)).thenReturn(Optional.of(product));
+        when(orderRepository.save(any(Order.class)))
+                .thenThrow(new DataIntegrityViolationException("Duplicate entry for order_no"));
+
+        CreateOrderRequest request = buildRequest(2);
+
+        BusinessException exception = catchThrowableOfType(
+                () -> orderService.createOrder(request), BusinessException.class);
+        assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ORDER_NO_DUPLICATE);
     }
 }
