@@ -21,6 +21,7 @@ import com.kemiel.cakeordering.product.repository.ProductRepository;
 import com.kemiel.cakeordering.product.repository.ProductVariantRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -149,7 +150,11 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus("PENDING");
         order.setItems(items);
 
-        order = orderRepository.save(order);
+        try {
+            order = orderRepository.save(order);
+        } catch (DataIntegrityViolationException e) {
+            throw new BusinessException(ErrorCode.ORDER_NO_DUPLICATE);
+        }
 
         log.info("訂單已建立，orderNo={}, 品項數量={}", order.getOrderNo(), items.size());
 
