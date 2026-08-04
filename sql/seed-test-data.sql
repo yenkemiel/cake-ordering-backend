@@ -1,40 +1,45 @@
 -- ============================================================
--- 線上蛋糕訂購系統（WishCake）｜seed-test-data.sql
--- 依「開發日誌-8｜模組04 product（種子資料與分類擴充）」§2.2～2.3 定案內容
--- 訂單模組測試情境依「開發日誌-10｜模組06 order（Testcontainers 整合測試）」§3 追加
+-- 線上蛋糕訂購系統（WishCake）| seed-test-data.sql
 --
--- 用途：本機開發測試用假資料（商品＋變體），非正式環境必要種子資料，
---       不受 Flyway 管理，不會被自動套用，內容預期會隨測試需求調整。
+-- 用途：本機開發測試用假資料，非正式環境必要種子資料，不受 Flyway
+--       管理，不會被自動套用。
 --
 -- 依賴：須先執行 init.sql／Flyway migration（V1__init.sql）建立
---       categories 之後才能執行本檔案（category_id 對應：
---       1=水果系列蛋糕 2=千層系列蛋糕 3=起司系列蛋糕 4=配件 5=其他）。
+--       categories 之後才能執行本檔案。category_id 對應：
+--       1=水果系列蛋糕 2=千層系列蛋糕 3=起司系列蛋糕 4=配件 5=其他。
 --
 -- 執行方式：
---   mysql -h 127.0.0.1 -P 3306 -u cake_app -p cake_ordering_db < sql/seed-test-data.sql
+--   mysql -h 127.0.0.1 -P 3307 -u cake_app -p cake_ordering_db < sql/seed-test-data.sql
 --
--- 內容：5 分類、11 商品、15 筆變體，涵蓋正常多尺寸、混合上下架、
---       缺貨但仍上架、單一尺寸、全部下架、無尺寸差異（配件／小甜點）、
---       單一商品的分類等測試情境；另追加訂單模組測試用 1 商品、1 變體，
---       涵蓋變體／商品軟刪除情境（見第 4 節）。
+-- 內容：
+--   第 1～2 節：11 商品、15 變體，涵蓋正常多尺寸、混合上下架、缺貨
+--     但仍上架、單一尺寸、全部下架、無尺寸差異（配件／小甜點）、
+--     單一商品的分類等測試情境。
+--   第 3 節：訂單模組測試用 1 商品、1 變體，涵蓋變體／商品軟刪除
+--     情境（VARIANT_NOT_FOUND）。
+--   第 4 節：Postman Collection 固定基準用 1 分類、1 商品、1 變體。
+--   第 5 節：訂單管理後台展示用 32 筆訂單。
+--   合計：6 分類、13 商品、17 變體。
 -- ============================================================
 
 -- ============================================================
 -- 1. products（商品）
+-- 圖片來源：duk.tw。cake-ordering-frontend 為 Private repo，raw 連結帶
+-- 時效性 token，不適用於需長期穩定的 image_url 欄位；圖片原始檔另存於
+-- cake-ordering-frontend repo 的 admin/img/ 資料夾備份。
 -- ============================================================
 INSERT INTO products (name, category_id, description, image_url, is_deleted, created_at, updated_at) VALUES
-    ('綜合水果蛋糕',   1, '嚴選當季新鮮水果，酸甜平衡，適合各種慶祝場合。',           'https://placehold.co/600x450?text=Fruit+Mix+Cake',       0, NOW(), NOW()),
-    ('草莓奶油蛋糕',   1, '日本進口草莓搭配輕盈鮮奶油，清爽不甜膩。',                 'https://placehold.co/600x450?text=Strawberry+Cake',      0, NOW(), NOW()),
-    ('芒果生乳酪蛋糕', 1, '濃郁芒果果泥融合生乳酪，入口即化。',                       'https://placehold.co/600x450?text=Mango+Cheesecake',     0, NOW(), NOW()),
-    ('抹茶千層',       2, '手工製作二十層以上薄餅皮，搭配宇治抹茶奶餡。',             'https://placehold.co/600x450?text=Matcha+Mille+Crepe',   0, NOW(), NOW()),
-    ('原味千層',       2, '經典原味千層，層層堆疊的細緻口感。',                       'https://placehold.co/600x450?text=Original+Mille+Crepe', 0, NOW(), NOW()),
-    ('巧克力千層',     2, '比利時巧克力融入千層餅皮，濃郁不膩口。',                   'https://placehold.co/600x450?text=Chocolate+Mille+Crepe',0, NOW(), NOW()),
-    ('原味巴斯克',     3, '外層微焦、中心綿密濕潤的經典巴斯克起司蛋糕。',             'https://placehold.co/600x450?text=Basque+Cheesecake',    0, NOW(), NOW()),
-    ('藍莓重乳酪蛋糕', 3, '濃郁重乳酪搭配藍莓果醬，口感綿密扎實。',                   'https://placehold.co/600x450?text=Blueberry+Cheesecake', 0, NOW(), NOW()),
-    ('造型蠟燭',       4, '各式造型生日蠟燭，可依需求選購。',                         'https://placehold.co/600x450?text=Candle',               0, NOW(), NOW()),
-    ('生日卡片',       4, '手工設計生日卡片，可搭配蛋糕加購。',                       'https://placehold.co/600x450?text=Birthday+Card',        0, NOW(), NOW()),
-    ('杜拜巧克力Q餅',   5, '中東風味手工巧克力，內餡開心果醬與酥脆卡達果絲。',             'https://placehold.co/600x450?text=Dubai+Chocolate',      0, NOW(), NOW());
-
+    ('綜合水果蛋糕',   1, '嚴選當季新鮮水果，酸甜平衡，適合各種慶祝場合。',           'https://duk.tw/cLSxvj.webp', 0, NOW(), NOW()),
+    ('草莓奶油蛋糕',   1, '日本進口草莓搭配輕盈鮮奶油，清爽不甜膩。',                 'https://duk.tw/YCYs2B.webp', 0, NOW(), NOW()),
+    ('芒果生乳酪蛋糕', 1, '濃郁芒果果泥融合生乳酪，入口即化。',                       'https://duk.tw/rnb45L.webp', 0, NOW(), NOW()),
+    ('抹茶千層',       2, '手工製作二十層以上薄餅皮，搭配宇治抹茶奶餡。',             'https://duk.tw/LSeJwG.webp', 0, NOW(), NOW()),
+    ('原味千層',       2, '經典原味千層，層層堆疊的細緻口感。',                       'https://duk.tw/MPWk7z.webp', 0, NOW(), NOW()),
+    ('巧克力千層',     2, '比利時巧克力融入千層餅皮，濃郁不膩口。',                   'https://duk.tw/5wj5UI.webp', 0, NOW(), NOW()),
+    ('原味巴斯克',     3, '外層微焦、中心綿密濕潤的經典巴斯克起司蛋糕。',             'https://duk.tw/sBWHyd.webp', 0, NOW(), NOW()),
+    ('藍莓重乳酪蛋糕', 3, '濃郁重乳酪搭配藍莓果醬，口感綿密扎實。',                   'https://duk.tw/dCZi0w.webp', 0, NOW(), NOW()),
+    ('造型蠟燭',       4, '各式造型生日蠟燭，可依需求選購。',                         'https://duk.tw/okGEqo.webp', 0, NOW(), NOW()),
+    ('生日卡片',       4, '手工設計生日卡片，可搭配蛋糕加購。',                       'https://duk.tw/PbCREK.webp', 0, NOW(), NOW()),
+    ('杜拜巧克力Q餅',   5, '中東風味手工巧克力，內餡開心果醬與酥脆卡達果絲。',             'https://duk.tw/THttBd.webp', 0, NOW(), NOW());
 -- ============================================================
 -- 2. product_variants（商品變體）
 -- ============================================================
@@ -92,52 +97,62 @@ INSERT INTO product_variants (product_id, size, price, stock, status, version, i
 SELECT id, NULL, 90, 6, 'ACTIVE', 0, 0, NOW(), NOW() FROM products WHERE name = '杜拜巧克力Q餅';
 
 -- ============================================================
--- 3. 商品照片替換：由 placehold.co 佔位圖換成真實照片
--- 圖床：duk.tw（原規劃使用 GitHub raw 連結，因 cake-ordering-frontend
--- repo 為 Private，raw 連結會帶時效性 token，不適合存入需長期穩定的
--- image_url 欄位，改用 duk.tw 永久連結）
--- 圖片原始檔另存於 cake-ordering-frontend repo 的 admin/img/ 資料夾備份
--- ============================================================
-UPDATE products SET image_url = 'https://duk.tw/cLSxvj.webp' WHERE name = '綜合水果蛋糕';
-UPDATE products SET image_url = 'https://duk.tw/YCYs2B.webp' WHERE name = '草莓奶油蛋糕';
-UPDATE products SET image_url = 'https://duk.tw/LSeJwG.webp' WHERE name = '抹茶千層';
-UPDATE products SET image_url = 'https://duk.tw/rnb45L.webp' WHERE name = '芒果生乳酪蛋糕';
-UPDATE products SET image_url = 'https://duk.tw/MPWk7z.webp' WHERE name = '原味千層';
-UPDATE products SET image_url = 'https://duk.tw/5wj5UI.webp' WHERE name = '巧克力千層';
-UPDATE products SET image_url = 'https://duk.tw/sBWHyd.webp' WHERE name = '原味巴斯克';
-UPDATE products SET image_url = 'https://duk.tw/dCZi0w.webp' WHERE name = '藍莓重乳酪蛋糕';
-UPDATE products SET image_url = 'https://duk.tw/okGEqo.webp' WHERE name = '造型蠟燭';
-UPDATE products SET image_url = 'https://duk.tw/PbCREK.webp' WHERE name = '生日卡片';
-UPDATE products SET image_url = 'https://duk.tw/THttBd.webp' WHERE name = '杜拜巧克力Q餅';
-
--- ============================================================
--- 4. 訂單模組測試種子資料（VARIANT_NOT_FOUND 軟刪除情境）
--- 依「開發日誌-10｜模組06 order（Testcontainers 整合測試）」§3 追加，
--- 涵蓋「變體本身已被軟刪除」與「所屬商品已被軟刪除」兩種原本無種子
--- 資料可測的情境
+-- 3. 訂單模組測試種子資料（VARIANT_NOT_FOUND 軟刪除情境）
+-- 涵蓋「變體本身已被軟刪除」與「所屬商品已被軟刪除」兩種情境。
 -- ============================================================
 
--- 訂單模組測試：variant 已軟刪除情境（VARIANT_NOT_FOUND）
+-- 情境一：變體本身已被軟刪除
 UPDATE product_variants SET is_deleted = 1
 WHERE product_id = (SELECT id FROM products WHERE name = '藍莓重乳酪蛋糕')
   AND size = '6吋';
 
--- 訂單模組測試：所屬商品已軟刪除情境（VARIANT_NOT_FOUND）
+-- 情境二：所屬商品已被軟刪除（is_deleted = 1，起始即為刪除狀態）
 INSERT INTO products (name, category_id, description, image_url, is_deleted, created_at, updated_at)
-VALUES ('測試用已刪除商品', 5, '測試用', 'https://placehold.co/600x450?text=Deleted', 1, NOW(), NOW());
+VALUES ('提拉米蘇（測試用）', 5, '測試用，商品本身起始即為軟刪除狀態。', 'https://duk.tw/SIILGS.webp', 1, NOW(), NOW());
 
 INSERT INTO product_variants (product_id, size, price, stock, status, version, is_deleted, created_at, updated_at)
 SELECT id, '6吋', 500, 5, 'ACTIVE', 0, 0, NOW(), NOW()
-FROM products WHERE name = '測試用已刪除商品';
+FROM products WHERE name = '提拉米蘇（測試用）';
 
 -- ============================================================
--- 5. 訂單管理後台展示用種子資料（32 筆，Week 4 orders.html 用）
--- 依討論定案：COMPLETED 14／PENDING 8／SHIPPED 6／CANCELLED 4
--- 用途：讓後台訂單列表在 Demo／開發階段有真實可看的資料量與分頁效果，
--- 純展示用途，直接寫入 orders／order_items，不觸發扣庫存邏輯，
--- 不影響既有商品模組測試情境（stock=0／VARIANT_NOT_FOUND 等）。
--- 執行方式：需在同一個資料庫連線／同一次 Execute SQL Script 內連續執行，
--- 依賴 LAST_INSERT_ID() 取得剛建立的 order id 供 order_items 使用。
+-- 4. Postman Collection 固定基準資料
+-- 分類、商品各 1 筆，供 postman/cake-ordering-backend.postman_collection.json
+-- 使用：[FR-CAT-002] Create Category／[FR-CAT-004] Delete Category、
+-- [FR-PRD-004] Create Product／[FR-PRD-006] Delete Product 各自搭配
+-- test script，動態捕捉每次執行時新建立的 id 並立即刪除。
+--
+-- 本節這兩筆資料本身永遠不會被 Postman 刪除，作用是讓分類／商品總數
+-- 在反覆執行整份 collection 前後維持不變，[FR-CAT-005] Reorder
+-- Categories 才能用固定 body（含分類 id=6）重複執行不出錯，不需要
+-- 每次重新灌種子資料。
+--
+-- 依賴本檔案既有的插入順序（第 1、3 節皆先於本節執行、且本檔案只有這裡
+-- 會新增 categories 資料列）：在全新資料庫下，本節分類固定取得 id=6、
+-- 商品固定取得 id=13、其變體固定取得 id=17。
+-- ============================================================
+
+-- 固定基準分類：底下不掛任何商品，符合 CategoryServiceImpl.deleteCategory()
+-- 的刪除條件（countByCategoryId = 0），僅作為固定基準值使用
+INSERT INTO categories (name, sort_order, created_at, updated_at) VALUES
+    ('節慶限定（測試用）', 6, NOW(), NOW());
+
+-- 固定基準商品：掛在既有「其他」分類（category_id=5）底下，而非上方
+-- 新增的分類，避免同一次 Collection Run 內 Delete Category 執行時被
+-- 這筆商品的 FK 卡住而無法刪除。變體狀態為 INACTIVE，前台商品清單
+-- 不會顯示這筆測試資料
+INSERT INTO products (name, category_id, description, image_url, is_deleted, created_at, updated_at)
+VALUES ('檸檬塔（測試用）', 5, 'Postman collection 固定基準商品，不被 Delete Product 直接刪除。', 'https://duk.tw/tpThAQ.webp', 0, NOW(), NOW());
+
+INSERT INTO product_variants (product_id, size, price, stock, status, version, is_deleted, created_at, updated_at)
+SELECT id, '6吋', 100, 1, 'INACTIVE', 0, 0, NOW(), NOW() FROM products WHERE name = '檸檬塔（測試用）';
+
+-- ============================================================
+-- 5. 訂單管理後台展示用種子資料（32 筆）
+-- 狀態分布：COMPLETED 14／PENDING 8／SHIPPED 6／CANCELLED 4。
+-- 直接寫入 orders／order_items，不觸發扣庫存邏輯，不影響既有商品模組
+-- 測試情境（stock=0／VARIANT_NOT_FOUND 等）。
+-- 執行方式：須在同一個資料庫連線／同一次 Execute SQL Script 內連續
+-- 執行，依賴 LAST_INSERT_ID() 取得剛建立的 order id 供 order_items 使用。
 -- ============================================================
 
 -- 訂單 1/32：SHIPPED
