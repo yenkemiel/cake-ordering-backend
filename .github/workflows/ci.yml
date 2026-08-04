@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: ['**']
+    branches: [ '**' ]
 
 jobs:
   test:
@@ -16,4 +16,4 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Run tests
-        run: mvn test
+        run: mvn verify
