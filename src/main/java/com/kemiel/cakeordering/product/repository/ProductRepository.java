@@ -23,7 +23,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             + "AND (:status IS NULL OR EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id "
             + "AND v.isDeleted = false AND v.status = :status))")
     Page<Product> findForAdminByCategoryIds(@Param("categoryIds") List<Long> categoryIds,
-                                            @Param("status") String status, Pageable pageable);
+            @Param("status") String status, Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE p.isDeleted = false AND p.id = :id")
     Product findByIsDeletedFalseAndId(@Param("id") Long id);
@@ -48,7 +48,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             + "AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id "
             + "AND v.status = 'ACTIVE' AND v.isDeleted = false)")
     Page<Product> findActiveByCategoryIdExcluding(@Param("categoryId") Long categoryId,
-                                                  @Param("excludeCategoryId") Long excludeCategoryId, Pageable pageable);
+            @Param("excludeCategoryId") Long excludeCategoryId, Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE p.isDeleted = false AND p.id = :id "
             + "AND EXISTS (SELECT 1 FROM ProductVariant v WHERE v.productId = p.id "
