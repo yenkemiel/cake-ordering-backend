@@ -1,7 +1,5 @@
 package com.kemiel.cakeordering.common.health;
 
-import com.kemiel.cakeordering.common.exception.BusinessException;
-import com.kemiel.cakeordering.common.exception.ErrorCode;
 import com.kemiel.cakeordering.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,13 +20,7 @@ public class HealthController {
     @GetMapping
     public ApiResponse<HealthResponse> check() {
         Long count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM categories", Long.class);
-        HealthResponse healthResponse = new HealthResponse("ok",count);
+        HealthResponse healthResponse = new HealthResponse("ok", count);
         return ApiResponse.success(healthResponse);
     }
-
-    @GetMapping("/test-error")
-    public ApiResponse<Void> testError() {
-        throw new BusinessException(ErrorCode.PRODUCT_NOT_FOUND);
-    }
-
 }
