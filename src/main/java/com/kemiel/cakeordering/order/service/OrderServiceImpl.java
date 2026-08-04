@@ -159,7 +159,7 @@ public class OrderServiceImpl implements OrderService {
     /**
      * 產生訂單編號，格式 ORD + 時間戳 + 四位隨機數
      */
-    private String generateOrderNo() {
+    String generateOrderNo() {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
         String random = String.format("%04d", ThreadLocalRandom.current().nextInt(ORDER_NO_RANDOM_BOUND));
         return "ORD" + timestamp + random;
