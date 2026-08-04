@@ -1,6 +1,8 @@
 package com.kemiel.cakeordering.order.service;
 
 import com.kemiel.cakeordering.AbstractIntegrationTest;
+import com.kemiel.cakeordering.category.entity.Category;
+import com.kemiel.cakeordering.category.repository.CategoryRepository;
 import com.kemiel.cakeordering.order.dto.CreateOrderRequest;
 import com.kemiel.cakeordering.order.dto.OrderDetailResponse;
 import com.kemiel.cakeordering.order.dto.OrderItemRequest;
@@ -54,6 +56,9 @@ class OrderConcurrencyIntegrationTest extends AbstractIntegrationTest {
     private ProductRepository productRepository;
 
     @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
     private ProductVariantRepository productVariantRepository;
 
     private ProductVariant variantX;
@@ -61,7 +66,10 @@ class OrderConcurrencyIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        Product product = new Product("併發測試蛋糕", 1L, "OrderConcurrencyIntegrationTest 測試專用，不依賴 seed-test-data.sql", null);
+        Category category = categoryRepository.save(new Category("併發測試分類-" + System.nanoTime(), 1));
+
+        Product product = new Product("併發測試蛋糕", category.getId(),
+                "OrderConcurrencyIntegrationTest 測試專用，不依賴 seed-test-data.sql", null);
         product = productRepository.save(product);
 
         variantX = productVariantRepository.save(

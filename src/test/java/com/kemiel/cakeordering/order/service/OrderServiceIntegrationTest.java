@@ -1,6 +1,8 @@
 package com.kemiel.cakeordering.order.service;
 
 import com.kemiel.cakeordering.AbstractIntegrationTest;
+import com.kemiel.cakeordering.category.entity.Category;
+import com.kemiel.cakeordering.category.repository.CategoryRepository;
 import com.kemiel.cakeordering.order.dto.CreateOrderRequest;
 import com.kemiel.cakeordering.order.dto.OrderItemRequest;
 import com.kemiel.cakeordering.order.dto.OrderResponse;
@@ -44,6 +46,9 @@ class OrderServiceIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private CategoryRepository categoryRepository;
+
     @MockitoBean
     private EmailApiClient emailApiClient;
 
@@ -51,7 +56,10 @@ class OrderServiceIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        Product product = new Product("整合測試蛋糕", 1L, "Testcontainers 測試專用，不依賴 seed-test-data.sql", null);
+        Category category = categoryRepository.save(new Category("整合測試分類-" + System.nanoTime(), 1));
+
+        Product product = new Product("整合測試蛋糕", category.getId(),
+                "Testcontainers 測試專用，不依賴 seed-test-data.sql", null);
         product = productRepository.save(product);
 
         ProductVariant variant = new ProductVariant(product.getId(), "6吋", BigDecimal.valueOf(680), 5, "ACTIVE");
