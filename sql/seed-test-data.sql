@@ -4,7 +4,7 @@
 -- 用途：本機開發測試用假資料，非正式環境必要種子資料，不受 Flyway
 --       管理，不會被自動套用。
 --
--- 依賴：須先執行 init.sql／Flyway migration（V1__init.sql）建立
+-- 依賴：須先執行 Flyway migration（V1__init.sql）建立
 --       categories 之後才能執行本檔案。category_id 對應：
 --       1=水果系列蛋糕 2=千層系列蛋糕 3=起司系列蛋糕 4=配件 5=其他。
 --
