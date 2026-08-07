@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.CannotAcquireLockException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -18,18 +19,38 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * 攔截 BusinessException，依例外攜帶的 ErrorCode 轉換成對應的 HTTP 狀態碼與統一回應格式
+     */
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException e) {
         return ResponseEntity.status(resolveHttpStatus(e.getErrorCode()))
                 .body(ApiResponse.error(e.getErrorCode()));
     }
 
+    /**
+     * 攔截 @Valid 觸發的 Bean Validation 失敗，統一轉成 400 VALIDATION_ERROR
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidationException(MethodArgumentNotValidException e) {
         return ResponseEntity.badRequest()
                 .body(ApiResponse.error(ErrorCode.VALIDATION_ERROR));
     }
 
+    /**
+     * 攔截 JSON 反序列化失敗（例如日期欄位格式不合法、無法解析成 LocalDate），
+     * 避免落到 catch-all 分支被誤判為未預期系統錯誤而回 500
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMessageNotReadable(HttpMessageNotReadableException e) {
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(ErrorCode.VALIDATION_ERROR));
+    }
+
+    /**
+     * 攔截樂觀鎖版本衝突（ObjectOptimisticLockingFailureException／OptimisticLockException），
+     * 統一轉為 409 STOCK_VERSION_CONFLICT
+     */
     @ExceptionHandler({ObjectOptimisticLockingFailureException.class, OptimisticLockException.class})
     public ResponseEntity<ApiResponse<Void>> handleOptimisticLock(Exception e) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
@@ -47,6 +68,10 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ErrorCode.CONCURRENT_UPDATE_CONFLICT));
     }
 
+    /**
+     * Catch-all，攔截所有未被上述分支處理的例外，統一記錄 error log 並回傳 500 INTERNAL_ERROR，
+     * 避免未預期錯誤直接曝露堆疊資訊給前端
+     */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleUnexpected(Exception e) {
         log.error("Unexpected error", e);
@@ -54,6 +79,9 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(ErrorCode.INTERNAL_ERROR));
     }
 
+    /**
+     * 依 ErrorCode 分類對照回傳應使用的 HTTP 狀態碼，供 handleBusinessException() 呼叫
+     */
     private HttpStatus resolveHttpStatus(ErrorCode errorCode) {
         return switch (errorCode) {
             case UNAUTHORIZED, INVALID_CREDENTIALS -> HttpStatus.UNAUTHORIZED;
@@ -63,7 +91,8 @@ public class GlobalExceptionHandler {
             case INVALID_ORDER_STATUS_TRANSITION, ORDER_CANCEL_NOT_ALLOWED,
                  STOCK_VERSION_CONFLICT, CATEGORY_NAME_DUPLICATE, CATEGORY_IN_USE,
                  VARIANT_DELETE_NOT_ALLOWED, CONCURRENT_UPDATE_CONFLICT, ORDER_NO_DUPLICATE -> HttpStatus.CONFLICT;
-            case VALIDATION_ERROR, CATEGORY_INVALID, INSUFFICIENT_STOCK -> HttpStatus.BAD_REQUEST;
+            case VALIDATION_ERROR, CATEGORY_INVALID, INSUFFICIENT_STOCK, PICKUP_DATE_OUT_OF_RANGE ->
+                    HttpStatus.BAD_REQUEST;
             default -> HttpStatus.INTERNAL_SERVER_ERROR;
         };
     }
