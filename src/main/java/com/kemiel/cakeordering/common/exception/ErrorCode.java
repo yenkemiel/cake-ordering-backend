@@ -32,6 +32,7 @@ public enum ErrorCode {
     INVALID_ORDER_STATUS_TRANSITION("INVALID_ORDER_STATUS_TRANSITION", "訂單目前狀態不允許此操作"),
     ORDER_CANCEL_NOT_ALLOWED("ORDER_CANCEL_NOT_ALLOWED", "此訂單已出貨或已完成，無法取消"),
     ORDER_NO_DUPLICATE("ORDER_NO_DUPLICATE", "訂單編號重複，請重新送出"),
+    PICKUP_DATE_OUT_OF_RANGE("PICKUP_DATE_OUT_OF_RANGE", "取貨／配送日期需為 3 天後至 3 個月內"),
 
     // Email 通知（僅供內部記錄，不對外回傳給前端）
     EMAIL_SEND_FAILED("EMAIL_SEND_FAILED", "訂單通知信寄送失敗"),

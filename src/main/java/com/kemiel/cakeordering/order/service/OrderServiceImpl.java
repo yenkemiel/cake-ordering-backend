@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -159,6 +160,19 @@ public class OrderServiceImpl implements OrderService {
         log.info("訂單已建立，orderNo={}, 品項數量={}", order.getOrderNo(), items.size());
 
         return toResponse(order);
+    }
+
+    /**
+     * 檢查取貨／配送日期是否落在允許範圍（今天 + 3 天 ～ 今天 + 3 個月），
+     * 前端已有相同限制，此處為後端最後一道防線，避免繞過前端直接呼叫 API
+     */
+    private void validatePickupDateRange(LocalDate pickupDate) {
+        LocalDate today = LocalDate.now();
+        LocalDate minDate = today.plusDays(3);
+        LocalDate maxDate = today.plusMonths(3);
+        if (pickupDate.isBefore(minDate) || pickupDate.isAfter(maxDate)) {
+            throw new BusinessException(ErrorCode.PICKUP_DATE_OUT_OF_RANGE);
+        }
     }
 
     /**
