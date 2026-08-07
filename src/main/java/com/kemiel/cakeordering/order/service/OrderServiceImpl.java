@@ -73,6 +73,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponse createOrder(CreateOrderRequest request) {
+        validatePickupDateRange(request.getPickupDate());
+
         BigDecimal shippingFee = "DELIVERY".equals(request.getShippingMethod())
                 ? BigDecimal.valueOf(250)
                 : BigDecimal.ZERO;
