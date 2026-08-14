@@ -29,17 +29,17 @@
 -- cake-ordering-frontend repo 的 admin/img/ 資料夾備份。
 -- ============================================================
 INSERT INTO products (name, category_id, description, image_url, is_deleted, created_at, updated_at) VALUES
-    ('綜合水果蛋糕',   1, '嚴選當季新鮮水果，酸甜平衡，適合各種慶祝場合。',           'https://duk.tw/cLSxvj.webp', 0, NOW(), NOW()),
-    ('草莓奶油蛋糕',   1, '日本進口草莓搭配輕盈鮮奶油，清爽不甜膩。',                 'https://duk.tw/YCYs2B.webp', 0, NOW(), NOW()),
-    ('芒果生乳酪蛋糕', 1, '濃郁芒果果泥融合生乳酪，入口即化。',                       'https://duk.tw/rnb45L.webp', 0, NOW(), NOW()),
-    ('抹茶千層',       2, '手工製作二十層以上薄餅皮，搭配宇治抹茶奶餡。',             'https://duk.tw/LSeJwG.webp', 0, NOW(), NOW()),
-    ('原味千層',       2, '經典原味千層，層層堆疊的細緻口感。',                       'https://duk.tw/MPWk7z.webp', 0, NOW(), NOW()),
-    ('巧克力千層',     2, '比利時巧克力融入千層餅皮，濃郁不膩口。',                   'https://duk.tw/5wj5UI.webp', 0, NOW(), NOW()),
-    ('原味巴斯克',     3, '外層微焦、中心綿密濕潤的經典巴斯克起司蛋糕。',             'https://duk.tw/sBWHyd.webp', 0, NOW(), NOW()),
-    ('藍莓重乳酪蛋糕', 3, '濃郁重乳酪搭配藍莓果醬，口感綿密扎實。',                   'https://duk.tw/dCZi0w.webp', 0, NOW(), NOW()),
-    ('造型蠟燭',       4, '各式造型生日蠟燭，可依需求選購。',                         'https://duk.tw/okGEqo.webp', 0, NOW(), NOW()),
-    ('生日卡片',       4, '手工設計生日卡片，可搭配蛋糕加購。',                       'https://duk.tw/PbCREK.webp', 0, NOW(), NOW()),
-    ('杜拜巧克力Q餅',   5, '中東風味手工巧克力，內餡開心果醬與酥脆卡達果絲。',             'https://duk.tw/THttBd.webp', 0, NOW(), NOW());
+    ('綜合水果蛋糕',   1, '嚴選當季新鮮水果，酸甜平衡，適合各種慶祝場合。',           '/shared/img/products/fruit-mix-cake.webp', 0, NOW(), NOW()),
+    ('草莓奶油蛋糕',   1, '日本進口草莓搭配輕盈鮮奶油，清爽不甜膩。',                 '/shared/img/products/strawberry-cake.webp', 0, NOW(), NOW()),
+    ('芒果生乳酪蛋糕', 1, '濃郁芒果果泥融合生乳酪，入口即化。',                       '/shared/img/products/mango-cheesecake.webp', 0, NOW(), NOW()),
+    ('抹茶千層',       2, '手工製作二十層以上薄餅皮，搭配宇治抹茶奶餡。',             '/shared/img/products/matcha-mille-crepe.webp', 0, NOW(), NOW()),
+    ('原味千層',       2, '經典原味千層，層層堆疊的細緻口感。',                       '/shared/img/products/original-mille-crepe.webp', 0, NOW(), NOW()),
+    ('巧克力千層',     2, '比利時巧克力融入千層餅皮，濃郁不膩口。',                   '/shared/img/products/chocolate-mille-crepe.webp', 0, NOW(), NOW()),
+    ('原味巴斯克',     3, '外層微焦、中心綿密濕潤的經典巴斯克起司蛋糕。',             '/shared/img/products/basque-cheesecake.webp', 0, NOW(), NOW()),
+    ('藍莓重乳酪蛋糕', 3, '濃郁重乳酪搭配藍莓果醬，口感綿密扎實。',                   '/shared/img/products/blueberry-cheesecake.webp', 0, NOW(), NOW()),
+    ('造型蠟燭',       4, '各式造型生日蠟燭，可依需求選購。',                         '/shared/img/products/candle.webp', 0, NOW(), NOW()),
+    ('生日卡片',       4, '手工設計生日卡片，可搭配蛋糕加購。',                       '/shared/img/products/birthday-card.webp', 0, NOW(), NOW()),
+    ('杜拜巧克力Q餅',   5, '中東風味手工巧克力，內餡開心果醬與酥脆卡達果絲。',             '/shared/img/products/dubai-chocolate-chewy-cake.webp', 0, NOW(), NOW());
 -- ============================================================
 -- 2. product_variants（商品變體）
 -- ============================================================
@@ -108,7 +108,7 @@ WHERE product_id = (SELECT id FROM products WHERE name = '藍莓重乳酪蛋糕'
 
 -- 情境二：所屬商品已被軟刪除（is_deleted = 1，起始即為刪除狀態）
 INSERT INTO products (name, category_id, description, image_url, is_deleted, created_at, updated_at)
-VALUES ('提拉米蘇（測試用）', 5, '測試用，商品本身起始即為軟刪除狀態。', 'https://duk.tw/SIILGS.webp', 1, NOW(), NOW());
+VALUES ('提拉米蘇（測試用）', 5, '測試用，商品本身起始即為軟刪除狀態。', '/shared/img/products/tiramisu.webp', 1, NOW(), NOW());
 
 INSERT INTO product_variants (product_id, size, price, stock, status, version, is_deleted, created_at, updated_at)
 SELECT id, '6吋', 500, 5, 'ACTIVE', 0, 0, NOW(), NOW()
@@ -141,8 +141,7 @@ INSERT INTO categories (name, sort_order, created_at, updated_at) VALUES
 -- 這筆商品的 FK 卡住而無法刪除。變體狀態為 INACTIVE，前台商品清單
 -- 不會顯示這筆測試資料
 INSERT INTO products (name, category_id, description, image_url, is_deleted, created_at, updated_at)
-VALUES ('檸檬塔（測試用）', 5, 'Postman collection 固定基準商品，不被 Delete Product 直接刪除。', 'https://duk.tw/tpThAQ.webp', 0, NOW(), NOW());
-
+VALUES ('檸檬塔（測試用）', 5, 'Postman collection 固定基準商品，不被 Delete Product 直接刪除。', '/shared/img/products/lemon-tart.webp', 0, NOW(), NOW());
 INSERT INTO product_variants (product_id, size, price, stock, status, version, is_deleted, created_at, updated_at)
 SELECT id, '6吋', 100, 1, 'INACTIVE', 0, 0, NOW(), NOW() FROM products WHERE name = '檸檬塔（測試用）';
 
