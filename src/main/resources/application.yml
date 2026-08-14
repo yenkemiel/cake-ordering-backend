@@ -15,6 +15,7 @@ spring:
     active: local
 
 server:
+  port: ${PORT:8080}
   servlet:
     session:
       cookie:
