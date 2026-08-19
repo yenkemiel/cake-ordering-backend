@@ -17,6 +17,8 @@ title: WishCake｜線上蛋糕訂購系統（後端）
 | Swagger API 文件 | [連結](https://cake-ordering-backend-production.up.railway.app/swagger-ui.html) |
 |線上蛋糕訂購系統文件總覽|[連結](https://hackmd.io/@Ug5CetXYQUGf_XJEfWCFHA/BJ1fr-tVGx)
 
+## Demo
+
 #### 商品一覽
 ![商品一覽](https://duk.tw/mikXn3.png)
 
@@ -28,8 +30,6 @@ title: WishCake｜線上蛋糕訂購系統（後端）
 ![情境一：單商品搶購 30 併發](https://duk.tw/3dEOuo.gif)
 情境二：跨商品交叉下單 60 併發
 ![情境二：跨商品交叉下單 60 併發](https://duk.tw/A6nmXt.gif)
-
-## Demo
 
 ## 專案定位
 
