@@ -17,29 +17,16 @@ title: WishCake｜線上蛋糕訂購系統（後端）
 | Swagger API 文件 | [連結](https://cake-ordering-backend-production.up.railway.app/swagger-ui.html) |
 |線上蛋糕訂購系統文件總覽|[連結](https://hackmd.io/@Ug5CetXYQUGf_XJEfWCFHA/BJ1fr-tVGx)
 
-<!--
-截圖建議放這裡，補 2–3 張即可，不用多：
-1. 前台首頁或商品列表頁
-2. 後台訂單管理列表頁
-3. 防超賣展示頁的併發測試結果（30 併發那組數據畫面）
-
-語法：
-![前台首頁](docs/screenshots/customer-home.png)
-![後台訂單管理](docs/screenshots/admin-orders.png)
-![防超賣併發測試結果](docs/screenshots/oversell-demo-result.png)
-
-截圖檔案建議存在 repo 的 docs/screenshots/ 資料夾，用相對路徑引用。
--->
-**商品一覽**
+#### 商品一覽
 ![商品一覽](https://duk.tw/mikXn3.png)
 
-**後台訂單管理**
+#### 後台訂單管理
 ![後台訂單管理](https://duk.tw/C81xDA.png)
 
-**防超賣併發測試結果**
+#### 防超賣併發測試結果
 情境一：單商品搶購 30 併發
 ![情境一：單商品搶購 30 併發](https://duk.tw/3dEOuo.gif)
-情境一：單商品搶購 30 併發
+情境二：跨商品交叉下單 60 併發
 ![情境二：跨商品交叉下單 60 併發](https://duk.tw/A6nmXt.gif)
 
 ## Demo
